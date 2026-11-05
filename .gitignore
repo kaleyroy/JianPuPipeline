@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# 模型权重与大型二进制（超 GitHub 100MB 限制，获取方式见 AGENTS.md / download_models.py）
+vendor/SOME/pretrained/
+vendor/lilypond/
+
+# 流水线运行输出（out/ 保留小型成品文件作为示例，排除中间产物与大音频）
+out/work/
+out/*.wav
+output_song/
+output_test/
+output_test_some/
+
+# 受版权保护的输入音频，请自行放置
+/*.mp3
+/*.mp4
+/*.wav
+
+# 系统杂项
+Thumbs.db
+.DS_Store

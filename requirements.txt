@@ -1,0 +1,15 @@
+# 全部为开源组件 (venv: Python 3.10)
+demucs>=4.0        # 人声/伴奏分离 (MIT)
+basic-pitch>=0.4   # 音频→音符/MIDI 通用转写回退 (Apache-2.0, Spotify, ONNX)
+beat-this>=1.0     # 节拍+downbeat(小节线)追踪, ISMIR 2024 (MIT)
+jianpu-ly          # 简谱→LilyPond 出版排版 (Apache-2.0)
+funasr             # 歌词识别(实验性, paraformer-zh) (MIT)
+modelscope         # funasr 模型下载后端
+lightning          # SOME 推理依赖 (Apache-2.0)
+praat-parselmouth  # SOME 推理依赖 (GPL/例外)
+pretty-midi        # SOME MIDI 解析 (MIT)
+librosa>=0.10      # 节拍回退引擎/起音分析 (ISC)
+soundfile
+numpy
+# SOME 源码与模型权重见 vendor/SOME (代码 MIT, 模型 CC BY-NC-SA 4.0 非商用)
+# LilyPond 便携版已内置 vendor/lilypond
