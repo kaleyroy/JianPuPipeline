@@ -25,6 +25,12 @@
 
   % un-comment the next line for a more space-saving header layout:
   % scoreTitleMarkup = \markup { \center-column { \fill-line { \magnify #1.5 { \bold { \fromproperty #'header:dedication } } \magnify #1.5 { \bold { \fromproperty #'header:title } } \fromproperty #'header:composer } \fill-line { \fromproperty #'header:instrument \fromproperty #'header:subtitle \smaller{\fromproperty #'header:subsubtitle } } } }
+
+  % Might need to enforce a minimum spacing between systems, especially if lyrics are below the last staff in a system and numbers are on the top of the next
+  system-system-spacing = #'((basic-distance . 7) (padding . 5) (stretchability . 1e7))
+  score-markup-spacing = #'((basic-distance . 9) (padding . 5) (stretchability . 1e7))
+  score-system-spacing = #'((basic-distance . 9) (padding . 5) (stretchability . 1e7))
+  markup-system-spacing = #'((basic-distance . 2) (padding . 2) (stretchability . 0))
 }
 
 %% 2-dot and 3-dot articulations
@@ -268,121 +274,129 @@ jianpuGraceCurveEnd =
 %===========================================================
 
 %{ The jianpu-ly input was:
-title=寄往未来的信
-1=G
-4/4
-4=125
-1' 1' - 1' |
-1' - 2' q3' q7 |
-7 q7 q7 0 7 |
-0 7 q7 q1' q2' q6 |
-6 q6 q6 0 6 |
-0 6 q5 q6 1' |
-2' 1' 0 0 |
-0 0 1 2 |
-5 3 2 q5 q3 |
-q3 q2 q3 q2 3 5 |
-5 3 2 q1 q2 |
-0 q2 q1 2 3 |
-6, 3 - - |
-3 1 2 3 |
-6, 3 - q2 q1 |
-0 0 1 2 |
-5 3 2 q5 q3 |
-2 q3 q2 3 5 |
-5 q2 q3 2 q1 q2 |
-0 1 2 3 |
-6, 3 - 0 |
-0 1 2 q3 q#1 |
-6, 2 3 q2 q1 |
-0 0 0 0 |
-q1 q1 2 2 q3 q3 |
-0 5 4 3 |
-q7, q1 q1 q1 1 q2 q2 |
-0 4 q3 q2 2 |
-q1 q5 3 3 - |
-0 0 0 2 |
-q1 q5 3 - q2 q1 |
-0 1 q1 q2 3 |
-0 0 1 2 |
-3 q5 q5 1 q7, q7, |
-0 0 7, q7, q1 |
-2 q4 q3 7, q7, q1 |
-0 0 0 q6, q7, |
-1 q3 q3 1 q6, q6, |
-6, q6, q1' 2' q5, q5, |
-q4 q4 q3 q1 4 3 |
-0 0 1 q1 q2 |
-3 q5 q5 1 q7, q7, |
-0 0 0 q7, q1 |
-2 q4 q3 2 q2 q1 |
-0 0 0 q6, q7, |
-1 q3 q3 0 q1 q6, |
-0 q6, q5, q4 q3 3 |
+title=寄往未来的信
+1=G
+4/4
+4=125
+L: 呜 _ _ _ _ _ _ _ _ _ _ _ 嗯 _ _ _ _ _ _ _ 我 _ _ _ _ 有过 _ 多 少 个 昨 天 _ 习 惯 了 日 夜 流转 _ 在 指 间 _ 也许 _ 这 几年 _ 改 变了 _ 一点 _ _ _ 能有 _ 多少 _ 个 夏 天 让 时 间 飞越 _ 风浪 _ _ 的火 _ 焰 期 待 的 明天 _ 改变 _ 又 好 年 _ _ _ _ 点 点 滴 滴 总是 _ 不经 意 潮 起 _ 潮 落 _ 总是 _ 生生 _ _ 不息 _ _ _ _ 咦 _ _ _ _ 请 _ 你相 _ 信 每 次 奔跑 _ 的勇 _ _ 气 都 是 谁 给 未 来 的 _ 信 穿 越 每 一 座山 _ _ 林 _ _ 对我 生 过 每 _ 一 个 海 底 没 有 人 可以 _ 被 代 _ 替 _ 前 路 不去 _ 又清 _ _ 晰 还 有 难 忘 的真 _ 心 一 切 美好 _ 都 会 与 你 同 _ 行 不 爱 _ _ _ _ 爱 你 _ 不是 _ _ _ _ _ 你 _ _ 我你 个 你 宝 _ 贝 _ 嗯 _ _ 点 点 滴 滴 交织 _ 在 一起 _ 聚 成 满天 星 星 _ 我的 _ 勇 _ 气 我的 勇 气 _ 我 的 _ 勇 _ 气 _ _ _ 没 过 的 冷 潮 总会 _ 愈合 _ 变成 _ 温柔 的 壳 _ _ 我 们 一 _ 定 我 们 已经 会 相 遇 在 某 个 好天 _ 气 _ _ _ _ 每次 _ 奔跑 _ 的 勇 _ 气 都 是 写 给 未 来 _ 的 信 穿 越 每一 座 _ 山 林 _ _ 在 冲 过 每 一 个 海 _ 滨 _ 没 有 人 可 以 被 代 _ 替 夜 路 不去 _ 有惊 _ _ 星 还 有 难 忘 的风 _ 景 一 切 美 好 都 会 与 你 相 _ 信 _ 每 _ 次 奔 跑到 _ 勇 _ _ 心 都 是献 _ 给 未 来 的 你 的 心 穿 越 每 一 座 神 _ _ 林 _ 对 你总 成 过 每 一 个 海 底 _ _ 没 有 人 可 以 被 代 _ _ 替 天 路 不知 _ _ 有 星 _ 星 还 有 难 忘 的 _ 风 景 _ 一 切 美 好 都 会 与你 同 _ 行
+chords=g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m7 e1*4/4:m7 c1*4/4 c1*4/4 g1*4/4 g1*4/4 d1*4/4:7 d1*4/4:7 c1*4/4:maj7 c1*4/4:maj7 c1*4/4:7 c1*4/4:7 g1*4/4 g1*4/4 d1*4/4 d1*4/4:7 e1*4/4:m e1*4/4:m7 c1*4/4 s1*4/4 g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m e1*4/4:m c1*4/4 c1*4/4 g1*4/4 c1*4/4:m d1*4/4:maj7 c1*4/4:m7 e1*4/4:m7 c1*4/4:maj7 c1*4/4 c1*4/4 g1*4/4 c1*4/4:m d1*4/4 d1*4/4 e1*4/4:m7 e1*4/4:m7 c1*4/4 c1*4/4:7 g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m e1*4/4:m c1*4/4 s1*4/4 g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m7 e1*4/4:m7 c1*4/4 s1*4/4 g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m7 c1*4/4:maj7 c1*4/4:7 c1*4/4:maj7 g1*4/4 c1*4/4:m7 d1*4/4 c1*4/4:m7 e1*4/4:m e1*4/4:m c1*4/4 c1*4/4 g1*4/4 c1*4/4:m7 d1*4/4 d1*4/4:7 e1*4/4:m7 c1*4/4:maj7 c1*4/4 c1*4/4 g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m7 e1*4/4:m7 c1*4/4 c1*4/4 g1*4/4 c1*4/4:m7 d1*4/4 d1*4/4:maj7 e1*4/4:m c1*4/4:7 c1*4/4:7 c1*4/4
+frets=guitar
+1' - 1' 1' |
+1' - 2' q3' q7 |
+#6 q7 q7 0 7 |
+7 0 q7 q1' q2' q6 |
+6 q6 q6 0 6 |
+0 0 q5 q6 1' |
+2' 1' 0 0 |
+0 0 1 2 |
+5 3 2 q5 q3 |
+q3 q2 q3 q2 3 5 |
+5 3 2 q1 q2 |
+0 q2 q1 2 3 |
+6, 3 - - |
+0 1 2 3 |
+6, 3 - q2 q1 |
+0 0 1 2 |
+5 3 2 q5 q3 |
+2 q3 q2 3 5 |
+5 q2 q3 2 q1 q2 |
+0 1 2 3 |
+6, 3 - 0 |
+0 1 2 q3 q#1 |
+6, 2 3 q2 q1 |
+0 0 0 0 |
+q1 q1 2 2 q3 q3 |
+0 5 4 3 |
+q7, q7, q1 q1 1 q2 q2 |
+0 4 q3 q2 2 |
+q1 q5 4 3 - |
+0 0 0 2 |
+q1 q5 3 - q2 q1 |
+0 1 q1 q2 3 |
+0 0 1 2 |
+3 q5 q5 1 q7, q7, |
+0 0 7, q7, q1 |
+2 q4 q3 7, q7, q1 |
+0 0 0 q6, q7, |
+1 q3 q3 1 q6, q6, |
+6, q6, q1' 0 q5, q5, |
+q4 q4 q3 q1 4 3 |
+0 0 1 q1 q2 |
+3 q5 q5 1 q7, q7, |
+0 7, 0 q7, q1 |
+2 q4 q3 2 q2 q1 |
+0 0 0 q6, q7, |
+1 q3 q3 0 q1 q6, |
+0 q6, q5, q4 q3 3 |
+4 q3 q1 q1 q7, 1 |
+0 1' - - |
+0 1' 2' q3' q7 |
+2' q3' q7 0 7 |
+7 7 q7 q1' q2' q6 |
+6 q#5 q6 6 q6 q#5 |
+0 6 q5 q6 1' |
+2' 1' 2' 0 |
+0 0 0 0 |
+q1 q1 2 2 q3 q3 |
+0 5 4 3 |
+q7, q7, 1 1 q2 q2 |
+0 4 q3 q7, 7, |
+1 5 3 4 |
+3 4 q3 q1 q1 q6, |
+6, - 5, q6, q5, |
+0 0 0 0 |
+q1 q1 2 2 q3 q3 |
+0 5 4 3 |
+q7, q7, 1 1 q2 q1 |
+2 q3 q4 3 q7, q1 |
+0 5 q5 q3 0 |
+0 0 0 5, |
+4 q3 q4 3 4 |
+3 1 q#1 q#1 q#1 q1 |
+0 0 q1' q1 2 |
+3 q5 q5 1 q7, q7, |
+0 0 7, q7, q1 |
+2 q4 q3 7, q7, q1 |
+0 0 0 q6, q7, |
+1 q3 q3 7, q#4, q6, |
+6, 4, 0 q5, q5, |
+4 q3 q1 q3 q4 3 |
+0 0 q3 q1 q1 q2 |
+3 q5 q5 1 q7, q7, |
+0 0 0 q7, q1 |
+2 q4 q3 2 q2 q1 |
+0 0 0 q6, q7, |
+1 q3 q3 0 q1 q6, |
+0 q6, q5, q4 q3 3 |
+4 q3 q1 #2 q#2 q3 |
+3 0 1 q1 q2 |
+3 q5 q5 q5 q1 q7, q7, |
+0 0 7, q7, q1 |
+2 q4 q3 q3 q3 q7, q1 |
+0 0 0 q6, q7, |
+1 q3 q3 q3 q1 q#5, q6, |
+q#5, q1' 6 0 q1 q1, |
+6 q4 q4 6 4 |
+#4 5 3 q3 q3 |
+3 q1 q1 3 q2 q2 |
+2 - - q#2 q3 |
+3 q#5 s6 s3 q5 q2 3 |
+0 0 0 q#1 q3 |
+3 q3 q4 q5 q3 q3 q1 |
+0 q#5, q5, q4 q3 3 |
 4 q3 q1 7, 1 |
-0 0 0 0 |
-0 1' 2' q3' q7 |
-2' q3' q7 7 - |
-0 0 q7 q1' q2' q6 |
-6 q#5 q6 0 q6 q6 |
-#5 6 q5 q6 1' |
-2' 1' 2' 0 |
-0 0 0 0 |
-q1 q1 2 2 q3 q3 |
-0 5 4 3 |
-q7, q7, 1 1 q2 q2 |
-0 4 q3 q7, 7, |
-1 5 3 4 |
-0 4 q3 q1 q1 q6, |
-6, - 5, q6, q5, |
-0 0 0 0 |
-q1 q1 2 2 q3 q3 |
-0 5 4 3 |
-q7, q7, 1 1 q2 q1 |
-2 q3 q4 3 q7, q1 |
-0 5 q5 q3 0 |
-0 0 0 5, |
-4 q4 q4 3 4 |
-3 q1 q#1 #1 1 |
-0 0 q1' q1 2 |
-3 q5 q5 1 q7, q7, |
-0 0 7, q7, q1 |
-2 q4 q3 7, q7, q1 |
-0 0 0 q6, q7, |
-1 q3 q3 7, q6, q6, |
-6, q6, q1' 0 q5, q5, |
-4 q3 q1 q3 q4 3 |
-0 0 1 q1 q2 |
-3 q5 q5 1 q7, q7, |
-0 0 0 q7, q1 |
-2 q4 q3 2 q2 q1 |
-0 0 0 q6, q7, |
-1 q3 q3 0 q1 q6, |
-0 q6, q5, q4 q3 3 |
-4 q3 q1 #2 3 |
-3 0 1 q1 q2 |
-3 q5 q5 q5 q1 q7, q7, |
-0 0 7, q7, q1 |
-2 q4 q3 q3 q3 q7, q1 |
-0 0 0 q6, q7, |
-1 q3 q3 q3 q7, q#5, q6, |
-q#5, q1' 6, 0 q1 q1, |
-6 q4 q4 6 4 |
-#4 5 3 q3 q3 |
-3 q1 q1 3 q2 q2 |
-2 - - q#2 q3 |
-3 q5 s6 s3 q5 q2 3 |
-0 0 0 q#1 q3 |
-3 q3 q3 q#4 q3 q3, q1 |
-0 q#5, q5, 3 3 |
-4 q3 q1 7, 0 |
 %}
 
+
+\include "predefined-guitar-fretboards.ly"
 
 \score {
 << \override Score.BarNumber #'break-visibility = #center-visible
 \override Score.BarNumber #'Y-offset = -1
 \set Score.barNumberVisibility = #(every-nth-bar-number-visible 5)
+\new ChordNames { \set chordChanges = ##f 
+\chordmode { g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m7 e1*4/4:m7 c1*4/4 c1*4/4 g1*4/4 g1*4/4 d1*4/4:7 d1*4/4:7 c1*4/4:maj7 c1*4/4:maj7 c1*4/4:7 c1*4/4:7 g1*4/4 g1*4/4 d1*4/4 d1*4/4:7 e1*4/4:m e1*4/4:m7 c1*4/4 s1*4/4 g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m e1*4/4:m c1*4/4 c1*4/4 g1*4/4 c1*4/4:m d1*4/4:maj7 c1*4/4:m7 e1*4/4:m7 c1*4/4:maj7 c1*4/4 c1*4/4 g1*4/4 c1*4/4:m d1*4/4 d1*4/4 e1*4/4:m7 e1*4/4:m7 c1*4/4 c1*4/4:7 g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m e1*4/4:m c1*4/4 s1*4/4 g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m7 e1*4/4:m7 c1*4/4 s1*4/4 g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m7 c1*4/4:maj7 c1*4/4:7 c1*4/4:maj7 g1*4/4 c1*4/4:m7 d1*4/4 c1*4/4:m7 e1*4/4:m e1*4/4:m c1*4/4 c1*4/4 g1*4/4 c1*4/4:m7 d1*4/4 d1*4/4:7 e1*4/4:m7 c1*4/4:maj7 c1*4/4 c1*4/4 g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m7 e1*4/4:m7 c1*4/4 c1*4/4 g1*4/4 c1*4/4:m7 d1*4/4 d1*4/4:maj7 e1*4/4:m c1*4/4:7 c1*4/4:7 c1*4/4 } }
+\new FretBoards {  \chordmode { g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m7 e1*4/4:m7 c1*4/4 c1*4/4 g1*4/4 g1*4/4 d1*4/4:7 d1*4/4:7 c1*4/4:maj7 c1*4/4:maj7 c1*4/4:7 c1*4/4:7 g1*4/4 g1*4/4 d1*4/4 d1*4/4:7 e1*4/4:m e1*4/4:m7 c1*4/4 s1*4/4 g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m e1*4/4:m c1*4/4 c1*4/4 g1*4/4 c1*4/4:m d1*4/4:maj7 c1*4/4:m7 e1*4/4:m7 c1*4/4:maj7 c1*4/4 c1*4/4 g1*4/4 c1*4/4:m d1*4/4 d1*4/4 e1*4/4:m7 e1*4/4:m7 c1*4/4 c1*4/4:7 g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m e1*4/4:m c1*4/4 s1*4/4 g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m7 e1*4/4:m7 c1*4/4 s1*4/4 g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m7 c1*4/4:maj7 c1*4/4:7 c1*4/4:maj7 g1*4/4 c1*4/4:m7 d1*4/4 c1*4/4:m7 e1*4/4:m e1*4/4:m c1*4/4 c1*4/4 g1*4/4 c1*4/4:m7 d1*4/4 d1*4/4:7 e1*4/4:m7 c1*4/4:maj7 c1*4/4 c1*4/4 g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m7 e1*4/4:m7 c1*4/4 c1*4/4 g1*4/4 c1*4/4:m7 d1*4/4 d1*4/4:maj7 e1*4/4:m c1*4/4:7 c1*4/4:7 c1*4/4 } }
 
 %% === BEGIN JIANPU STAFF ===
     \new RhythmicStaff \with {
@@ -417,8 +431,8 @@ q#5, q1' 6, 0 q1 q1, |
 
     \override Staff.TimeSignature #'style = #'numbered
     \override Staff.Stem #'transparent = ##t
-     \mark \markup{1=G} \time 4/4 \tempo 4=125  \note-mod "1" c''4^. \once \override Tie #'transparent = ##t \once \override Tie #'staff-position = #0  \note-mod "1" c''4^.
- ~  \note-mod "–" c''4  \note-mod "1" c''4^. | \once \override Tie #'transparent = ##t \once \override Tie #'staff-position = #0 | %{ bar 2: %}
+     \mark \markup{1=G} \time 4/4 \tempo 4=125 \once \override Tie #'transparent = ##t \once \override Tie #'staff-position = #0  \note-mod "1" c''4^.
+ ~  \note-mod "–" c''4  \note-mod "1" c''4^.  \note-mod "1" c''4^. | \once \override Tie #'transparent = ##t \once \override Tie #'staff-position = #0 | %{ bar 2: %}
  \note-mod "1" c''4^.
  ~  \note-mod "–" c''4  \note-mod "2" d''4^. \set stemLeftBeamCount = #0
 \set stemRightBeamCount = #1
@@ -427,7 +441,7 @@ q#5, q1' 6, 0 q1 q1, |
 \set stemRightBeamCount = #1
  \note-mod "7" b'8]
 | | %{ bar 3: %}
- \note-mod "7" b'4
+ \note-mod "6" \once \tweak Accidental.extra-offset #'(0 . 0.7)ais'4
 \set stemLeftBeamCount = #0
 \set stemRightBeamCount = #1
  \note-mod "7" b'8[
@@ -435,8 +449,8 @@ q#5, q1' 6, 0 q1 q1, |
 \set stemRightBeamCount = #1
  \note-mod "7" b'8]
  \note-mod "0" r4  \note-mod "7" b'4 | | %{ bar 4: %}
- \note-mod "0" r4
- \note-mod "7" b'4 \set stemLeftBeamCount = #0
+ \note-mod "7" b'4
+ \note-mod "0" r4 \set stemLeftBeamCount = #0
 \set stemRightBeamCount = #1
  \note-mod "7" b'8[
 \set stemLeftBeamCount = #1
@@ -458,7 +472,7 @@ q#5, q1' 6, 0 q1 q1, |
  \note-mod "6" a'8]
  \note-mod "0" r4  \note-mod "6" a'4 | | %{ bar 6: %}
  \note-mod "0" r4
- \note-mod "6" a'4 \set stemLeftBeamCount = #0
+ \note-mod "0" r4 \set stemLeftBeamCount = #0
 \set stemRightBeamCount = #1
  \note-mod "5" g'8[
 \set stemLeftBeamCount = #1
@@ -509,7 +523,7 @@ q#5, q1' 6, 0 q1 q1, |
 \once \override Tie #'transparent = ##t \once \override Tie #'staff-position = #0  \note-mod "3" e'4
  ~ \once \override Tie #'transparent = ##t \once \override Tie #'staff-position = #0  \note-mod "–" e'4
  ~  \note-mod "–" e'4 | | %{ bar 14: %}
- \note-mod "3" e'4
+ \note-mod "0" r4
  \note-mod "1" c'4  \note-mod "2" d'4  \note-mod "3" e'4 | | %{ bar 15: %}
  \note-mod "6" a4-\tweak #'Y-offset #-1.2 -\tweak #'X-offset #0.6 _. 
 \once \override Tie #'transparent = ##t \once \override Tie #'staff-position = #0  \note-mod "3" e'4
@@ -593,7 +607,7 @@ q#5, q1' 6, 0 q1 q1, |
  \note-mod "7" b8-\tweak #'X-offset #0.6 _. [
 \set stemLeftBeamCount = #1
 \set stemRightBeamCount = #1
- \note-mod "1" c'8]
+ \note-mod "7" b8-\tweak #'X-offset #0.6 _. ]
 \set stemLeftBeamCount = #0
 \set stemRightBeamCount = #1
  \note-mod "1" c'8[
@@ -620,7 +634,7 @@ q#5, q1' 6, 0 q1 q1, |
 \set stemLeftBeamCount = #1
 \set stemRightBeamCount = #1
  \note-mod "5" g'8]
- \note-mod "3" e'4 \once \override Tie #'transparent = ##t \once \override Tie #'staff-position = #0  \note-mod "3" e'4
+ \note-mod "4" f'4 \once \override Tie #'transparent = ##t \once \override Tie #'staff-position = #0  \note-mod "3" e'4
  ~  \note-mod "–" e'4 | | %{ bar 30: %}
  \note-mod "0" r4
  \note-mod "0" r4  \note-mod "0" r4  \note-mod "2" d'4 | | %{ bar 31: %} \set stemLeftBeamCount = #0
@@ -714,7 +728,7 @@ q#5, q1' 6, 0 q1 q1, |
 \set stemLeftBeamCount = #1
 \set stemRightBeamCount = #1
  \note-mod "1" c''8^.]
- \note-mod "2" d''4^. \set stemLeftBeamCount = #0
+ \note-mod "0" r4 \set stemLeftBeamCount = #0
 \set stemRightBeamCount = #1
  \note-mod "5" g8-\tweak #'X-offset #0.6 _. [
 \set stemLeftBeamCount = #1
@@ -756,7 +770,8 @@ q#5, q1' 6, 0 q1 q1, |
  \note-mod "7" b8-\tweak #'X-offset #0.6 _. ]
 | | %{ bar 43: %}
  \note-mod "0" r4
- \note-mod "0" r4  \note-mod "0" r4 \set stemLeftBeamCount = #0
+ \note-mod "7" b4-\tweak #'Y-offset #-1.2 -\tweak #'X-offset #0.6 _. 
+ \note-mod "0" r4 \set stemLeftBeamCount = #0
 \set stemRightBeamCount = #1
  \note-mod "7" b8-\tweak #'X-offset #0.6 _. [
 \set stemLeftBeamCount = #1
@@ -820,10 +835,17 @@ q#5, q1' 6, 0 q1 q1, |
 \set stemLeftBeamCount = #1
 \set stemRightBeamCount = #1
  \note-mod "1" c'8]
- \note-mod "7" b4-\tweak #'Y-offset #-1.2 -\tweak #'X-offset #0.6 _. 
+\set stemLeftBeamCount = #0
+\set stemRightBeamCount = #1
+ \note-mod "1" c'8[
+\set stemLeftBeamCount = #1
+\set stemRightBeamCount = #1
+ \note-mod "7" b8-\tweak #'X-offset #0.6 _. ]
  \note-mod "1" c'4 | | %{ bar 49: %}
  \note-mod "0" r4
- \note-mod "0" r4  \note-mod "0" r4  \note-mod "0" r4 | | %{ bar 50: %}
+\once \override Tie #'transparent = ##t \once \override Tie #'staff-position = #0  \note-mod "1" c''4^.
+ ~ \once \override Tie #'transparent = ##t \once \override Tie #'staff-position = #0  \note-mod "–" c''4
+ ~  \note-mod "–" c''4 | | %{ bar 50: %}
  \note-mod "0" r4
  \note-mod "1" c''4^.  \note-mod "2" d''4^. \set stemLeftBeamCount = #0
 \set stemRightBeamCount = #1
@@ -839,10 +861,9 @@ q#5, q1' 6, 0 q1 q1, |
 \set stemLeftBeamCount = #1
 \set stemRightBeamCount = #1
  \note-mod "7" b'8]
-\once \override Tie #'transparent = ##t \once \override Tie #'staff-position = #0  \note-mod "7" b'4
- ~  \note-mod "–" b'4 | | %{ bar 52: %}
- \note-mod "0" r4
- \note-mod "0" r4 \set stemLeftBeamCount = #0
+ \note-mod "0" r4  \note-mod "7" b'4 | | %{ bar 52: %}
+ \note-mod "7" b'4
+ \note-mod "7" b'4 \set stemLeftBeamCount = #0
 \set stemRightBeamCount = #1
  \note-mod "7" b'8[
 \set stemLeftBeamCount = #1
@@ -862,17 +883,17 @@ q#5, q1' 6, 0 q1 q1, |
 \set stemLeftBeamCount = #1
 \set stemRightBeamCount = #1
  \note-mod "6" a'8]
- \note-mod "0" r4 \set stemLeftBeamCount = #0
+ \note-mod "6" a'4 \set stemLeftBeamCount = #0
 \set stemRightBeamCount = #1
  \note-mod "6" a'8[
 \set stemLeftBeamCount = #1
 \set stemRightBeamCount = #1
- \note-mod "6" a'8]
+ \note-mod "5" gis'8]
 | | %{ bar 54: %}
- \note-mod "5" \once \tweak Accidental.extra-offset #'(0 . 0.7)gis'4
- \note-mod "6" a'4 \set stemLeftBeamCount = #1
+ \note-mod "0" r4
+ \note-mod "6" a'4 \set stemLeftBeamCount = #0
 \set stemRightBeamCount = #1
- \note-mod "5" \once \tweak Accidental.extra-offset #'(0 . 0.7)g'8[
+ \note-mod "5" g'8[
 \set stemLeftBeamCount = #1
 \set stemRightBeamCount = #1
  \note-mod "6" a'8]
@@ -918,7 +939,7 @@ q#5, q1' 6, 0 q1 q1, |
 | | %{ bar 61: %}
  \note-mod "1" c'4
  \note-mod "5" g'4  \note-mod "3" e'4  \note-mod "4" f'4 | | %{ bar 62: %}
- \note-mod "0" r4
+ \note-mod "3" e'4
  \note-mod "4" f'4 \set stemLeftBeamCount = #0
 \set stemRightBeamCount = #1
  \note-mod "3" e'8[
@@ -997,19 +1018,24 @@ q#5, q1' 6, 0 q1 q1, |
  \note-mod "4" f'4
 \set stemLeftBeamCount = #0
 \set stemRightBeamCount = #1
- \note-mod "4" f'8[
+ \note-mod "3" e'8[
 \set stemLeftBeamCount = #1
 \set stemRightBeamCount = #1
  \note-mod "4" f'8]
  \note-mod "3" e'4  \note-mod "4" f'4 | | %{ bar 72: %}
  \note-mod "3" e'4
-\set stemLeftBeamCount = #0
+ \note-mod "1" c'4 \set stemLeftBeamCount = #1
 \set stemRightBeamCount = #1
- \note-mod "1" c'8[
+ \note-mod "1" \once \tweak Accidental.extra-offset #'(0 . 0.7)cis'8[
 \set stemLeftBeamCount = #1
 \set stemRightBeamCount = #1
- \note-mod "1" \once \tweak Accidental.extra-offset #'(0 . 0.7)cis'8]
- \note-mod "1" cis'4  \note-mod "1" \once \tweak Accidental.extra-offset #'(0 . 0.7)c'4
+ \note-mod "1" cis'8]
+\set stemLeftBeamCount = #0
+\set stemRightBeamCount = #1
+ \note-mod "1" cis'8[
+\set stemLeftBeamCount = #1
+\set stemRightBeamCount = #1
+ \note-mod "1" \once \tweak Accidental.extra-offset #'(0 . 0.7)c'8]
 | | %{ bar 73: %}
  \note-mod "0" r4
  \note-mod "0" r4 \set stemLeftBeamCount = #0
@@ -1073,20 +1099,15 @@ q#5, q1' 6, 0 q1 q1, |
 \set stemRightBeamCount = #1
  \note-mod "3" e'8]
  \note-mod "7" b4-\tweak #'Y-offset #-1.2 -\tweak #'X-offset #0.6 _. 
-\set stemLeftBeamCount = #0
+\set stemLeftBeamCount = #1
 \set stemRightBeamCount = #1
- \note-mod "6" a8-\tweak #'X-offset #0.6 _. [
+ \note-mod "4" \once \tweak Accidental.extra-offset #'(0 . 0.7)fis8-\tweak #'X-offset #0.6 _. [
 \set stemLeftBeamCount = #1
 \set stemRightBeamCount = #1
  \note-mod "6" a8-\tweak #'X-offset #0.6 _. ]
 | | %{ bar 79: %}
  \note-mod "6" a4-\tweak #'Y-offset #-1.2 -\tweak #'X-offset #0.6 _. 
-\set stemLeftBeamCount = #0
-\set stemRightBeamCount = #1
- \note-mod "6" a8-\tweak #'X-offset #0.6 _. [
-\set stemLeftBeamCount = #1
-\set stemRightBeamCount = #1
- \note-mod "1" c''8^.]
+ \note-mod "4" f4-\tweak #'Y-offset #-1.2 -\tweak #'X-offset #0.6 _. 
  \note-mod "0" r4 \set stemLeftBeamCount = #0
 \set stemRightBeamCount = #1
  \note-mod "5" g8-\tweak #'X-offset #0.6 _. [
@@ -1109,7 +1130,13 @@ q#5, q1' 6, 0 q1 q1, |
  \note-mod "4" f'8]
  \note-mod "3" e'4 | | %{ bar 81: %}
  \note-mod "0" r4
- \note-mod "0" r4  \note-mod "1" c'4 \set stemLeftBeamCount = #0
+ \note-mod "0" r4 \set stemLeftBeamCount = #0
+\set stemRightBeamCount = #1
+ \note-mod "3" e'8[
+\set stemLeftBeamCount = #1
+\set stemRightBeamCount = #1
+ \note-mod "1" c'8]
+\set stemLeftBeamCount = #0
 \set stemRightBeamCount = #1
  \note-mod "1" c'8[
 \set stemLeftBeamCount = #1
@@ -1196,7 +1223,13 @@ q#5, q1' 6, 0 q1 q1, |
 \set stemRightBeamCount = #1
  \note-mod "1" c'8]
  \note-mod "2" \once \tweak Accidental.extra-offset #'(0 . 0.7)dis'4
- \note-mod "3" e'4 | | %{ bar 89: %}
+\set stemLeftBeamCount = #0
+\set stemRightBeamCount = #1
+ \note-mod "2" dis'8[
+\set stemLeftBeamCount = #1
+\set stemRightBeamCount = #1
+ \note-mod "3" e'8]
+| | %{ bar 89: %}
  \note-mod "3" e'4
  \note-mod "0" r4  \note-mod "1" c'4 \set stemLeftBeamCount = #0
 \set stemRightBeamCount = #1
@@ -1274,7 +1307,7 @@ q#5, q1' 6, 0 q1 q1, |
  \note-mod "3" e'8[
 \set stemLeftBeamCount = #1
 \set stemRightBeamCount = #1
- \note-mod "7" b8-\tweak #'X-offset #0.6 _. ]
+ \note-mod "1" c'8]
 \set stemLeftBeamCount = #0
 \set stemRightBeamCount = #1
  \note-mod "5" \once \tweak Accidental.extra-offset #'(0 . 0.7)gis8-\tweak #'X-offset #0.6 _. [
@@ -1287,8 +1320,7 @@ q#5, q1' 6, 0 q1 q1, |
 \set stemLeftBeamCount = #1
 \set stemRightBeamCount = #1
  \note-mod "1" c''8^.]
- \note-mod "6" a4-\tweak #'Y-offset #-1.2 -\tweak #'X-offset #0.6 _. 
- \note-mod "0" r4 \set stemLeftBeamCount = #0
+ \note-mod "6" a'4  \note-mod "0" r4 \set stemLeftBeamCount = #0
 \set stemRightBeamCount = #1
  \note-mod "1" c'8[
 \set stemLeftBeamCount = #1
@@ -1335,9 +1367,9 @@ q#5, q1' 6, 0 q1 q1, |
  \note-mod "3" e'8]
 | | %{ bar 100: %}
  \note-mod "3" e'4
-\set stemLeftBeamCount = #0
+\set stemLeftBeamCount = #1
 \set stemRightBeamCount = #1
- \note-mod "5" g'8[
+ \note-mod "5" \once \tweak Accidental.extra-offset #'(0 . 0.7)gis'8[
 \set stemLeftBeamCount = #1
 \set stemRightBeamCount = #2
  \note-mod "6" a'16
@@ -1346,7 +1378,7 @@ q#5, q1' 6, 0 q1 q1, |
  \note-mod "3" e'16]
 \set stemLeftBeamCount = #0
 \set stemRightBeamCount = #1
- \note-mod "5" g'8[
+ \note-mod "5" \once \tweak Accidental.extra-offset #'(0 . 0.7)g'8[
 \set stemLeftBeamCount = #1
 \set stemRightBeamCount = #1
  \note-mod "2" d'8]
@@ -1365,16 +1397,16 @@ q#5, q1' 6, 0 q1 q1, |
  \note-mod "3" e'8[
 \set stemLeftBeamCount = #1
 \set stemRightBeamCount = #1
- \note-mod "3" e'8]
+ \note-mod "4" f'8]
 \set stemLeftBeamCount = #0
 \set stemRightBeamCount = #1
- \note-mod "4" \once \tweak Accidental.extra-offset #'(0 . 0.7)fis'8[
+ \note-mod "5" g'8[
 \set stemLeftBeamCount = #1
 \set stemRightBeamCount = #1
  \note-mod "3" e'8]
 \set stemLeftBeamCount = #0
 \set stemRightBeamCount = #1
- \note-mod "3" e8-\tweak #'X-offset #0.6 _. [
+ \note-mod "3" e'8[
 \set stemLeftBeamCount = #1
 \set stemRightBeamCount = #1
  \note-mod "1" c'8]
@@ -1386,7 +1418,13 @@ q#5, q1' 6, 0 q1 q1, |
 \set stemLeftBeamCount = #1
 \set stemRightBeamCount = #1
  \note-mod "5" \once \tweak Accidental.extra-offset #'(0 . 0.7)g8-\tweak #'X-offset #0.6 _. ]
- \note-mod "3" e'4  \note-mod "3" e'4 | | %{ bar 104: %}
+\set stemLeftBeamCount = #0
+\set stemRightBeamCount = #1
+ \note-mod "4" f'8[
+\set stemLeftBeamCount = #1
+\set stemRightBeamCount = #1
+ \note-mod "3" e'8]
+ \note-mod "3" e'4 | | %{ bar 104: %}
  \note-mod "4" f'4
 \set stemLeftBeamCount = #0
 \set stemRightBeamCount = #1
@@ -1395,9 +1433,10 @@ q#5, q1' 6, 0 q1 q1, |
 \set stemRightBeamCount = #1
  \note-mod "1" c'8]
  \note-mod "7" b4-\tweak #'Y-offset #-1.2 -\tweak #'X-offset #0.6 _. 
- \note-mod "0" r4 | \bar "|." } }
+ \note-mod "1" c'4 | \bar "|." } }
 % === END JIANPU STAFF ===
 
+\new Lyrics = "IX" { \lyricsto "W" { 呜 _ _ _ _ _ _ _ _ _ _ _ 嗯 _ _ _ _ _ _ _ 我 _ _ _ _ 有过 _ 多 少 个 昨 天 _ 习 惯 了 日 夜 流转 _ 在 指 间 _ 也许 _ 这 几年 _ 改 变了 _ 一点 _ _ _ 能有 _ 多少 _ 个 夏 天 让 时 间 飞越 _ 风浪 _ _ 的火 _ 焰 期 待 的 明天 _ 改变 _ 又 好 年 _ _ _ _ 点 点 滴 滴 总是 _ 不经 意 潮 起 _ 潮 落 _ 总是 _ 生生 _ _ 不息 _ _ _ _ 咦 _ _ _ _ 请 _ 你相 _ 信 每 次 奔跑 _ 的勇 _ _ 气 都 是 谁 给 未 来 的 _ 信 穿 越 每 一 座山 _ _ 林 _ _ 对我 生 过 每 _ 一 个 海 底 没 有 人 可以 _ 被 代 _ 替 _ 前 路 不去 _ 又清 _ _ 晰 还 有 难 忘 的真 _ 心 一 切 美好 _ 都 会 与 你 同 _ 行 不 爱 _ _ _ _ 爱 你 _ 不是 _ _ _ _ _ 你 _ _ 我你 个 你 宝 _ 贝 _ 嗯 _ _ 点 点 滴 滴 交织 _ 在 一起 _ 聚 成 满天 星 星 _ 我的 _ 勇 _ 气 我的 勇 气 _ 我 的 _ 勇 _ 气 _ _ _ 没 过 的 冷 潮 总会 _ 愈合 _ 变成 _ 温柔 的 壳 _ _ 我 们 一 _ 定 我 们 已经 会 相 遇 在 某 个 好天 _ 气 _ _ _ _ 每次 _ 奔跑 _ 的 勇 _ 气 都 是 写 给 未 来 _ 的 信 穿 越 每一 座 _ 山 林 _ _ 在 冲 过 每 一 个 海 _ 滨 _ 没 有 人 可 以 被 代 _ 替 夜 路 不去 _ 有惊 _ _ 星 还 有 难 忘 的风 _ 景 一 切 美 好 都 会 与 你 相 _ 信 _ 每 _ 次 奔 跑到 _ 勇 _ _ 心 都 是献 _ 给 未 来 的 你 的 心 穿 越 每 一 座 神 _ _ 林 _ 对 你总 成 过 每 一 个 海 底 _ _ 没 有 人 可 以 被 代 _ _ 替 天 路 不知 _ _ 有 星 _ 星 还 有 难 忘 的 _ 风 景 _ 一 切 美 好 都 会 与你 同 _ 行 } } 
 >>
 \header{
 title="寄往未来的信"
@@ -1411,9 +1450,12 @@ title="寄往未来的信"
 \score {
 \unfoldRepeats
 << 
+\new ChordNames { \set chordChanges = ##t 
+\chordmode { g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m7 e1*4/4:m7 c1*4/4 c1*4/4 g1*4/4 g1*4/4 d1*4/4:7 d1*4/4:7 c1*4/4:maj7 c1*4/4:maj7 c1*4/4:7 c1*4/4:7 g1*4/4 g1*4/4 d1*4/4 d1*4/4:7 e1*4/4:m e1*4/4:m7 c1*4/4 s1*4/4 g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m e1*4/4:m c1*4/4 c1*4/4 g1*4/4 c1*4/4:m d1*4/4:maj7 c1*4/4:m7 e1*4/4:m7 c1*4/4:maj7 c1*4/4 c1*4/4 g1*4/4 c1*4/4:m d1*4/4 d1*4/4 e1*4/4:m7 e1*4/4:m7 c1*4/4 c1*4/4:7 g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m e1*4/4:m c1*4/4 s1*4/4 g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m7 e1*4/4:m7 c1*4/4 s1*4/4 g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m7 c1*4/4:maj7 c1*4/4:7 c1*4/4:maj7 g1*4/4 c1*4/4:m7 d1*4/4 c1*4/4:m7 e1*4/4:m e1*4/4:m c1*4/4 c1*4/4 g1*4/4 c1*4/4:m7 d1*4/4 d1*4/4:7 e1*4/4:m7 c1*4/4:maj7 c1*4/4 c1*4/4 g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m7 e1*4/4:m7 c1*4/4 c1*4/4 g1*4/4 c1*4/4:m7 d1*4/4 d1*4/4:maj7 e1*4/4:m c1*4/4:7 c1*4/4:7 c1*4/4 } }
+\new FretBoards {  \chordmode { g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m7 e1*4/4:m7 c1*4/4 c1*4/4 g1*4/4 g1*4/4 d1*4/4:7 d1*4/4:7 c1*4/4:maj7 c1*4/4:maj7 c1*4/4:7 c1*4/4:7 g1*4/4 g1*4/4 d1*4/4 d1*4/4:7 e1*4/4:m e1*4/4:m7 c1*4/4 s1*4/4 g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m e1*4/4:m c1*4/4 c1*4/4 g1*4/4 c1*4/4:m d1*4/4:maj7 c1*4/4:m7 e1*4/4:m7 c1*4/4:maj7 c1*4/4 c1*4/4 g1*4/4 c1*4/4:m d1*4/4 d1*4/4 e1*4/4:m7 e1*4/4:m7 c1*4/4 c1*4/4:7 g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m e1*4/4:m c1*4/4 s1*4/4 g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m7 e1*4/4:m7 c1*4/4 s1*4/4 g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m7 c1*4/4:maj7 c1*4/4:7 c1*4/4:maj7 g1*4/4 c1*4/4:m7 d1*4/4 c1*4/4:m7 e1*4/4:m e1*4/4:m c1*4/4 c1*4/4 g1*4/4 c1*4/4:m7 d1*4/4 d1*4/4:7 e1*4/4:m7 c1*4/4:maj7 c1*4/4 c1*4/4 g1*4/4 g1*4/4 d1*4/4 d1*4/4 e1*4/4:m7 e1*4/4:m7 c1*4/4 c1*4/4 g1*4/4 c1*4/4:m7 d1*4/4 d1*4/4:maj7 e1*4/4:m c1*4/4:7 c1*4/4:7 c1*4/4 } }
 
 % === BEGIN MIDI STAFF ===
-    \new Staff { \new Voice="X" { \transpose c g, { \key c \major  \time 4/4 \tempo 4=125 c''4 c''2 c''4 | | %{ bar 2: %} c''2 d''4 e''8 b'8 | | %{ bar 3: %} b'4 b'8 b'8 r4 b'4 | | %{ bar 4: %} r4 b'4 b'8 c''8 d''8 a'8 | | %{ bar 5: %} a'4 a'8 a'8 r4 a'4 | | %{ bar 6: %} r4 a'4 g'8 a'8 c''4 | | %{ bar 7: %} d''4 c''4 r2 | | %{ bar 8: %} r2 c'4 d'4 | | %{ bar 9: %} g'4 e'4 d'4 g'8 e'8 | | %{ bar 10: %} e'8 d'8 e'8 d'8 e'4 g'4 | | %{ bar 11: %} g'4 e'4 d'4 c'8 d'8 | | %{ bar 12: %} r4 d'8 c'8 d'4 e'4 | | %{ bar 13: %} a4 e'2. | | %{ bar 14: %} e'4 c'4 d'4 e'4 | | %{ bar 15: %} a4 e'2 d'8 c'8 | | %{ bar 16: %} r2 c'4 d'4 | | %{ bar 17: %} g'4 e'4 d'4 g'8 e'8 | | %{ bar 18: %} d'4 e'8 d'8 e'4 g'4 | | %{ bar 19: %} g'4 d'8 e'8 d'4 c'8 d'8 | | %{ bar 20: %} r4 c'4 d'4 e'4 | | %{ bar 21: %} a4 e'2 r4 | | %{ bar 22: %} r4 c'4 d'4 e'8 cis'8 | | %{ bar 23: %} a4 d'4 e'4 d'8 c'8 | | %{ bar 24: %} R1 | | %{ bar 25: %} c'8 c'8 d'4 d'4 e'8 e'8 | | %{ bar 26: %} r4 g'4 f'4 e'4 | | %{ bar 27: %} b8 c'8 c'8 c'8 c'4 d'8 d'8 | | %{ bar 28: %} r4 f'4 e'8 d'8 d'4 | | %{ bar 29: %} c'8 g'8 e'4 e'2 | | %{ bar 30: %} r2. d'4 | | %{ bar 31: %} c'8 g'8 e'2 d'8 c'8 | | %{ bar 32: %} r4 c'4 c'8 d'8 e'4 | | %{ bar 33: %} r2 c'4 d'4 | | %{ bar 34: %} e'4 g'8 g'8 c'4 b8 b8 | | %{ bar 35: %} r2 b4 b8 c'8 | | %{ bar 36: %} d'4 f'8 e'8 b4 b8 c'8 | | %{ bar 37: %} r2. a8 b8 | | %{ bar 38: %} c'4 e'8 e'8 c'4 a8 a8 | | %{ bar 39: %} a4 a8 c''8 d''4 g8 g8 | | %{ bar 40: %} f'8 f'8 e'8 c'8 f'4 e'4 | | %{ bar 41: %} r2 c'4 c'8 d'8 | | %{ bar 42: %} e'4 g'8 g'8 c'4 b8 b8 | | %{ bar 43: %} r2. b8 c'8 | | %{ bar 44: %} d'4 f'8 e'8 d'4 d'8 c'8 | | %{ bar 45: %} r2. a8 b8 | | %{ bar 46: %} c'4 e'8 e'8 r4 c'8 a8 | | %{ bar 47: %} r4 a8 g8 f'8 e'8 e'4 | | %{ bar 48: %} f'4 e'8 c'8 b4 c'4 | | %{ bar 49: %} R1 | | %{ bar 50: %} r4 c''4 d''4 e''8 b'8 | | %{ bar 51: %} d''4 e''8 b'8 b'2 | | %{ bar 52: %} r2 b'8 c''8 d''8 a'8 | | %{ bar 53: %} a'4 gis'8 a'8 r4 a'8 a'8 | | %{ bar 54: %} gis'4 a'4 g'8 a'8 c''4 | | %{ bar 55: %} d''4 c''4 d''4 r4 | | %{ bar 56: %} R1 | | %{ bar 57: %} c'8 c'8 d'4 d'4 e'8 e'8 | | %{ bar 58: %} r4 g'4 f'4 e'4 | | %{ bar 59: %} b8 b8 c'4 c'4 d'8 d'8 | | %{ bar 60: %} r4 f'4 e'8 b8 b4 | | %{ bar 61: %} c'4 g'4 e'4 f'4 | | %{ bar 62: %} r4 f'4 e'8 c'8 c'8 a8 | | %{ bar 63: %} a2 g4 a8 g8 | | %{ bar 64: %} R1 | | %{ bar 65: %} c'8 c'8 d'4 d'4 e'8 e'8 | | %{ bar 66: %} r4 g'4 f'4 e'4 | | %{ bar 67: %} b8 b8 c'4 c'4 d'8 c'8 | | %{ bar 68: %} d'4 e'8 f'8 e'4 b8 c'8 | | %{ bar 69: %} r4 g'4 g'8 e'8 r4 | | %{ bar 70: %} r2. g4 | | %{ bar 71: %} f'4 f'8 f'8 e'4 f'4 | | %{ bar 72: %} e'4 c'8 cis'8 cis'4 c'4 | | %{ bar 73: %} r2 c''8 c'8 d'4 | | %{ bar 74: %} e'4 g'8 g'8 c'4 b8 b8 | | %{ bar 75: %} r2 b4 b8 c'8 | | %{ bar 76: %} d'4 f'8 e'8 b4 b8 c'8 | | %{ bar 77: %} r2. a8 b8 | | %{ bar 78: %} c'4 e'8 e'8 b4 a8 a8 | | %{ bar 79: %} a4 a8 c''8 r4 g8 g8 | | %{ bar 80: %} f'4 e'8 c'8 e'8 f'8 e'4 | | %{ bar 81: %} r2 c'4 c'8 d'8 | | %{ bar 82: %} e'4 g'8 g'8 c'4 b8 b8 | | %{ bar 83: %} r2. b8 c'8 | | %{ bar 84: %} d'4 f'8 e'8 d'4 d'8 c'8 | | %{ bar 85: %} r2. a8 b8 | | %{ bar 86: %} c'4 e'8 e'8 r4 c'8 a8 | | %{ bar 87: %} r4 a8 g8 f'8 e'8 e'4 | | %{ bar 88: %} f'4 e'8 c'8 dis'4 e'4 | | %{ bar 89: %} e'4 r4 c'4 c'8 d'8 | | %{ bar 90: %} e'4 g'8 g'8 g'8 c'8 b8 b8 | | %{ bar 91: %} r2 b4 b8 c'8 | | %{ bar 92: %} d'4 f'8 e'8 e'8 e'8 b8 c'8 | | %{ bar 93: %} r2. a8 b8 | | %{ bar 94: %} c'4 e'8 e'8 e'8 b8 gis8 a8 | | %{ bar 95: %} gis8 c''8 a4 r4 c'8 c8 | | %{ bar 96: %} a'4 f'8 f'8 a'4 f'4 | | %{ bar 97: %} fis'4 g'4 e'4 e'8 e'8 | | %{ bar 98: %} e'4 c'8 c'8 e'4 d'8 d'8 | | %{ bar 99: %} d'2. dis'8 e'8 | | %{ bar 100: %} e'4 g'8 a'16 e'16 g'8 d'8 e'4 | | %{ bar 101: %} r2. cis'8 e'8 | | %{ bar 102: %} e'4 e'8 e'8 fis'8 e'8 e8 c'8 | | %{ bar 103: %} r4 gis8 g8 e'4 e'4 | | %{ bar 104: %} f'4 e'8 c'8 b4 r4 | } } }
+    \new Staff { \new Voice="Y" { \transpose c g, { \key c \major  \time 4/4 \tempo 4=125 c''2 c''4 c''4 | | %{ bar 2: %} c''2 d''4 e''8 b'8 | | %{ bar 3: %} ais'4 b'8 b'8 r4 b'4 | | %{ bar 4: %} b'4 r4 b'8 c''8 d''8 a'8 | | %{ bar 5: %} a'4 a'8 a'8 r4 a'4 | | %{ bar 6: %} r2 g'8 a'8 c''4 | | %{ bar 7: %} d''4 c''4 r2 | | %{ bar 8: %} r2 c'4 d'4 | | %{ bar 9: %} g'4 e'4 d'4 g'8 e'8 | | %{ bar 10: %} e'8 d'8 e'8 d'8 e'4 g'4 | | %{ bar 11: %} g'4 e'4 d'4 c'8 d'8 | | %{ bar 12: %} r4 d'8 c'8 d'4 e'4 | | %{ bar 13: %} a4 e'2. | | %{ bar 14: %} r4 c'4 d'4 e'4 | | %{ bar 15: %} a4 e'2 d'8 c'8 | | %{ bar 16: %} r2 c'4 d'4 | | %{ bar 17: %} g'4 e'4 d'4 g'8 e'8 | | %{ bar 18: %} d'4 e'8 d'8 e'4 g'4 | | %{ bar 19: %} g'4 d'8 e'8 d'4 c'8 d'8 | | %{ bar 20: %} r4 c'4 d'4 e'4 | | %{ bar 21: %} a4 e'2 r4 | | %{ bar 22: %} r4 c'4 d'4 e'8 cis'8 | | %{ bar 23: %} a4 d'4 e'4 d'8 c'8 | | %{ bar 24: %} R1 | | %{ bar 25: %} c'8 c'8 d'4 d'4 e'8 e'8 | | %{ bar 26: %} r4 g'4 f'4 e'4 | | %{ bar 27: %} b8 b8 c'8 c'8 c'4 d'8 d'8 | | %{ bar 28: %} r4 f'4 e'8 d'8 d'4 | | %{ bar 29: %} c'8 g'8 f'4 e'2 | | %{ bar 30: %} r2. d'4 | | %{ bar 31: %} c'8 g'8 e'2 d'8 c'8 | | %{ bar 32: %} r4 c'4 c'8 d'8 e'4 | | %{ bar 33: %} r2 c'4 d'4 | | %{ bar 34: %} e'4 g'8 g'8 c'4 b8 b8 | | %{ bar 35: %} r2 b4 b8 c'8 | | %{ bar 36: %} d'4 f'8 e'8 b4 b8 c'8 | | %{ bar 37: %} r2. a8 b8 | | %{ bar 38: %} c'4 e'8 e'8 c'4 a8 a8 | | %{ bar 39: %} a4 a8 c''8 r4 g8 g8 | | %{ bar 40: %} f'8 f'8 e'8 c'8 f'4 e'4 | | %{ bar 41: %} r2 c'4 c'8 d'8 | | %{ bar 42: %} e'4 g'8 g'8 c'4 b8 b8 | | %{ bar 43: %} r4 b4 r4 b8 c'8 | | %{ bar 44: %} d'4 f'8 e'8 d'4 d'8 c'8 | | %{ bar 45: %} r2. a8 b8 | | %{ bar 46: %} c'4 e'8 e'8 r4 c'8 a8 | | %{ bar 47: %} r4 a8 g8 f'8 e'8 e'4 | | %{ bar 48: %} f'4 e'8 c'8 c'8 b8 c'4 | | %{ bar 49: %} r4 c''2. | | %{ bar 50: %} r4 c''4 d''4 e''8 b'8 | | %{ bar 51: %} d''4 e''8 b'8 r4 b'4 | | %{ bar 52: %} b'4 b'4 b'8 c''8 d''8 a'8 | | %{ bar 53: %} a'4 gis'8 a'8 a'4 a'8 gis'8 | | %{ bar 54: %} r4 a'4 g'8 a'8 c''4 | | %{ bar 55: %} d''4 c''4 d''4 r4 | | %{ bar 56: %} R1 | | %{ bar 57: %} c'8 c'8 d'4 d'4 e'8 e'8 | | %{ bar 58: %} r4 g'4 f'4 e'4 | | %{ bar 59: %} b8 b8 c'4 c'4 d'8 d'8 | | %{ bar 60: %} r4 f'4 e'8 b8 b4 | | %{ bar 61: %} c'4 g'4 e'4 f'4 | | %{ bar 62: %} e'4 f'4 e'8 c'8 c'8 a8 | | %{ bar 63: %} a2 g4 a8 g8 | | %{ bar 64: %} R1 | | %{ bar 65: %} c'8 c'8 d'4 d'4 e'8 e'8 | | %{ bar 66: %} r4 g'4 f'4 e'4 | | %{ bar 67: %} b8 b8 c'4 c'4 d'8 c'8 | | %{ bar 68: %} d'4 e'8 f'8 e'4 b8 c'8 | | %{ bar 69: %} r4 g'4 g'8 e'8 r4 | | %{ bar 70: %} r2. g4 | | %{ bar 71: %} f'4 e'8 f'8 e'4 f'4 | | %{ bar 72: %} e'4 c'4 cis'8 cis'8 cis'8 c'8 | | %{ bar 73: %} r2 c''8 c'8 d'4 | | %{ bar 74: %} e'4 g'8 g'8 c'4 b8 b8 | | %{ bar 75: %} r2 b4 b8 c'8 | | %{ bar 76: %} d'4 f'8 e'8 b4 b8 c'8 | | %{ bar 77: %} r2. a8 b8 | | %{ bar 78: %} c'4 e'8 e'8 b4 fis8 a8 | | %{ bar 79: %} a4 f4 r4 g8 g8 | | %{ bar 80: %} f'4 e'8 c'8 e'8 f'8 e'4 | | %{ bar 81: %} r2 e'8 c'8 c'8 d'8 | | %{ bar 82: %} e'4 g'8 g'8 c'4 b8 b8 | | %{ bar 83: %} r2. b8 c'8 | | %{ bar 84: %} d'4 f'8 e'8 d'4 d'8 c'8 | | %{ bar 85: %} r2. a8 b8 | | %{ bar 86: %} c'4 e'8 e'8 r4 c'8 a8 | | %{ bar 87: %} r4 a8 g8 f'8 e'8 e'4 | | %{ bar 88: %} f'4 e'8 c'8 dis'4 dis'8 e'8 | | %{ bar 89: %} e'4 r4 c'4 c'8 d'8 | | %{ bar 90: %} e'4 g'8 g'8 g'8 c'8 b8 b8 | | %{ bar 91: %} r2 b4 b8 c'8 | | %{ bar 92: %} d'4 f'8 e'8 e'8 e'8 b8 c'8 | | %{ bar 93: %} r2. a8 b8 | | %{ bar 94: %} c'4 e'8 e'8 e'8 c'8 gis8 a8 | | %{ bar 95: %} gis8 c''8 a'4 r4 c'8 c8 | | %{ bar 96: %} a'4 f'8 f'8 a'4 f'4 | | %{ bar 97: %} fis'4 g'4 e'4 e'8 e'8 | | %{ bar 98: %} e'4 c'8 c'8 e'4 d'8 d'8 | | %{ bar 99: %} d'2. dis'8 e'8 | | %{ bar 100: %} e'4 gis'8 a'16 e'16 g'8 d'8 e'4 | | %{ bar 101: %} r2. cis'8 e'8 | | %{ bar 102: %} e'4 e'8 f'8 g'8 e'8 e'8 c'8 | | %{ bar 103: %} r4 gis8 g8 f'8 e'8 e'4 | | %{ bar 104: %} f'4 e'8 c'8 b4 c'4 | } } }
 % === END MIDI STAFF ===
 
 >>

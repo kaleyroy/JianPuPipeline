@@ -13,8 +13,9 @@
 
 ## 项目是什么
 
-输入 mp3/mp4，输出**每小节人声简谱**：`jianpu.txt`（每行 4 小节）、`jianpu.html`（乐谱页）、
-`jianpu.pdf`（LilyPond 出版级）、`notes.csv`、`melody.mid`、`lyrics.txt`。全程本地，无在线服务。
+输入 mp3/mp4，输出**每小节人声简谱**：`jianpu.txt`（每行 4 小节+和弦行）、`jianpu.html`（乐谱页+
+和弦 SVG 指法图）、`jianpu.pdf`（LilyPond 出版级弹唱谱：每小节和弦名+吉他指法图、简谱下逐音符歌词）、
+`notes.csv`、`melody.mid`、`lyrics.txt`。全程本地，无在线服务。
 
 ### 架构与流程（mermaid）
 
@@ -26,13 +27,20 @@ flowchart LR
     D2 -. "失败回退" .-> D2F["librosa<br/>均匀网格"]
     C --> D1["④ SOME 歌声转写<br/>（回退 basic-pitch）"]
     C --> F["⑦ FunASR 歌词<br/>（可选 · 实验性）"]
+    B --> C2["no_vocals 伴奏 stem<br/>（--no-separate 时用混音）"]
+    C2 --> CH["⑨ 和弦检测<br/>chroma 模板+低音根音+调性先验"]
     D1 --> G["⑥ KS 调号<br/>强拍加权"]
     D2 --> E["⑤ 拍号推断<br/>+ 小节×拍网格"]
     F --> G
     E --> H["⑧ build_measure_cells<br/>量化/延音/下划线推导"]
     G --> H
+    E --> CH
+    G --> CH
     H --> O1["jianpu.txt / jianpu.html<br/>notes.csv / melody.mid"]
-    H --> O2["score.jly → jianpu-ly<br/>→ LilyPond → jianpu.pdf"]
+    CH --> O1
+    H --> O2["score.jly(chords=/frets=/L:)<br/>→ jianpu-ly → LilyPond → jianpu.pdf"]
+    CH --> O2
+    F --> O2
 ```
 
 任一引擎缺失自动降级并在日志注明，流水线不中断。降级决策图与执行时序图见 `ARCHITECTURE.md` 第 3、4 节。
@@ -129,13 +137,24 @@ flowchart LR
    仍乱用 `--bpm` + `--beats-per-measure`
 7. **量化规则**：音符归拍用"距整拍±0.15 吸附、其余 floor"（`locate_note`），八分/十六分归本拍
 8. **许可**：SOME 模型权重 CC BY-NC-SA 4.0（非商用）；代码各组件 MIT/Apache
-9. **测试锚点**：`test/run_test.py` 的回归断言锁定 `--transcriber basic-pitch --beat-engine librosa`
-   确定性路径（合成正弦对 SOME/demucs 是分布外样本，不做内容断言）
+9. **测试锚点**：`test/run_test.py` 的回归断言锁定 `--transcriber basic-pitch --beat-engine librosa
+   --no-chords` 确定性路径（合成正弦对 SOME/demucs 是分布外样本，不做内容断言）；和弦检查在
+   `synth_accompaniment` 合成的纯伴奏（每小节 C F C G ×2 循环，chroma 模板的分布内样本）上断言 ≥7/8
+10. **和弦/歌词进 PDF 的 jianpu-ly 约束**：`chords=`/`frets=guitar` 走 header 分支发射
+    ChordNames+FretBoards 平行声部（不碰 barcheck 账本）；jianpu-ly 硬编码 `chordChanges = ##t`，
+    要"每小节重复显示"必须后处理 score.ly 改成 `##f`（`render_lilypond_pdf` 内做）；和弦名→
+    LilyPond 荷兰音名（C#→cis、F#→fis）+ `:m/:7/:m7/:maj7`；`L:` 歌词行必须与音符 token 严格同序
+    收集（休止 `0`/延音 `-` 不占音节，无字用 `_`），且**必须用 `L:` 不能用 `H:`**（H: 自动加汉字
+    空格、`_` 语义被 jianpu-ly 重载）；predefined-guitar-fretboards 已覆盖 12 根音×5 性质（含
+    横按），无需自定义图；渲染前先 unlink 旧 jianpu.pdf（Windows 下被阅读器占用时 lilypond 重命名失败）
+11. **和弦检测已知局限**：每小节单一和弦、五类性质（maj/m/7/m7/maj7），不含转位/sus/小节内变化；
+    `--no-separate` 时用全混音，人声旋律音会带偏（混音下 F 和弦+强旋律 E 会被判成 Fmaj7，本质歧义）；
+    七和弦带 Occam 惩罚（`CHORD_SUFFIX_PENALTY`，真实歌曲调得 0.05~0.06），防泛音泄漏把三和弦推成七和弦
 
 ## 目录结构
 
 ```
-jianpu.py            # 主流水线（单文件，阶段①-⑧）
+jianpu.py            # 主流水线（单文件，阶段①-⑨，⑨=和弦检测）
 download_models.py   # 模型预下载/自检
 rerender_pdf.py      # 从 notes.csv 重排版 PDF
 requirements.txt     # pip 依赖（清华镜像安装）

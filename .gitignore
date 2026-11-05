@@ -10,9 +10,12 @@ vendor/lilypond/
 # 流水线运行输出（out/ 保留小型成品文件作为示例，排除中间产物与大音频）
 out/work/
 out/*.wav
+out/*.png
+out/*.mid
 output_song/
 output_test/
 output_test_some/
+output_chord_test/
 
 # 受版权保护的输入音频，请自行放置
 /*.mp3
@@ -22,3 +25,4 @@ output_test_some/
 # 系统杂项
 Thumbs.db
 .DS_Store
+.zcode/

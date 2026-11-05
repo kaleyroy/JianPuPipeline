@@ -9,6 +9,8 @@ jianpu.py — MP3/MP4 → 每小节人声简谱（全本地、全开源流水线
   3) basic-pitch  纯人声 → 音符事件(时间+音高) + MIDI (Spotify Apache-2.0)
   4) librosa      原始混音 → 节拍网格；音符音高直方图 → 调号(Krumhansl-Schmuckler)
   5) 简谱映射      音高 → 1234567 (含 #4 等变音)，按 [小节][拍] 分组输出
+  6) 和弦检测      伴奏 chroma → 每小节和弦(模板匹配+调性先验)，txt/html/pdf 输出
+                   和弦名 + 吉他指法图; PDF 简谱下方附逐音符歌词(同 jianpu.html)
 
 用法示例:
   python jianpu.py song.mp4 -o out                 # 全自动
@@ -25,6 +27,7 @@ import shutil
 import subprocess
 import sys
 import time
+from collections import Counter
 from pathlib import Path
 
 NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
@@ -392,6 +395,82 @@ def build_bar_grid(beats: list, duration: float, beats_per_bar: int,
     return bars, beat_len
 
 
+# ---------------------------------------------------------------- 阶段4c: 和弦检测
+# 和弦模板: 显示后缀 → {相对根音半音差: 度数权重}。
+# 权重(根音1.0 > 五音0.75 > 三音0.6 > 七音0.45)使七和弦只在七音真实存在时才胜出,
+# 否则人声旋律的经过音(2nd/4th/6th)会把三和弦误判成七和弦
+CHORD_TEMPLATES = {
+    '':     {0: 1.0, 4: 0.6, 7: 0.75},          # 大三和弦 C
+    'm':    {0: 1.0, 3: 0.6, 7: 0.75},          # 小三和弦 Cm
+    '7':    {0: 1.0, 4: 0.6, 7: 0.75, 10: 0.45},  # 属七 C7
+    'm7':   {0: 1.0, 3: 0.6, 7: 0.75, 10: 0.45},  # 小七 Cm7
+    'maj7': {0: 1.0, 4: 0.6, 7: 0.75, 11: 0.45},  # 大七 Cmaj7
+}
+# 七和弦 Occam 惩罚: 泛音/邻小节谐波泄漏常把三和弦误判成七和弦,
+# 只有七音证据强于惩罚值时才保留七和弦(真实歌曲调得: 0.05~0.06)
+CHORD_SUFFIX_PENALTY = {'': 0.0, 'm': 0.0, '7': 0.05, 'm7': 0.05, 'maj7': 0.06}
+# 调内顺阶和弦根音(相对调主音半音差): 只有这些根音吃调性先验加分
+DIATONIC_ROOTS = {
+    'major': {0, 2, 4, 5, 7, 9},   # I ii iii IV V vi
+    'minor': {0, 3, 5, 7, 8, 10},  # i III iv v VI VII (自然小调)
+}
+
+
+def detect_chords(audio_wav: Path, bars: list, beat_len: float, beats_per_bar: int,
+                  key_tonic: int, key_mode: str) -> dict:
+    """伴奏(优先)/全混音 + 小节网格 → {小节号: 和弦名 or None(N.C.)}。
+    每小节: chroma_cqt(fmin=C2 排除底鼓) 中位数 → 12根音×5性质 加权模板余弦
+    + 低音区根音加分(贝斯/垫音最低音≈根音) + 调性先验;
+    能量过低的窗(前奏/尾奏静音) → None。纯 librosa+numpy"""
+    import librosa
+    import numpy as np
+
+    y, sr = librosa.load(str(audio_wav), sr=22050, mono=True)
+    dur = len(y) / sr
+    hop = 512
+    chroma = librosa.feature.chroma_cqt(y=y, sr=sr, hop_length=hop, fmin=65.41)
+    # 低音根音线索: 每帧 C2..C4 中"最低的显著bin"的音级(贝斯/垫音最低音多为根音,
+    # 基频低于C2时其二次谐波落在窗内且同音级) —— 纠"最响音≠根音"的误判
+    C = np.abs(librosa.cqt(y=y, sr=sr, hop_length=hop, fmin=65.41,
+                           n_bins=24, bins_per_octave=12))
+    sig = C >= 0.25 * C.max(axis=0, keepdims=True)
+    pc_frame = np.where(sig.any(axis=0), sig.argmax(axis=0) % 12, -1)
+    rms = librosa.feature.rms(y=y, hop_length=hop)[0]
+    times = librosa.frames_to_time(np.arange(chroma.shape[1]), sr=sr, hop_length=hop)
+    rms_med = float(np.median(rms)) or 1e-9
+
+    diatonic = DIATONIC_ROOTS.get(key_mode, DIATONIC_ROOTS['major'])
+    out = {}
+    for i, (m, t0) in enumerate(bars):
+        t1 = bars[i + 1][1] if i + 1 < len(bars) else t0 + beats_per_bar * beat_len
+        t0, t1 = max(0.0, t0), min(dur, t1)
+        mask = (times >= t0) & (times < t1)
+        if not mask.any() or t1 - t0 < 0.2 or float(np.median(rms[mask])) < 0.08 * rms_med:
+            out[m] = None   # 静音/超短窗 → N.C.
+            continue
+        ch = np.median(chroma[:, mask], axis=1)
+        ch = ch / (float(np.max(ch)) or 1e-9)
+        ch_norm = math.sqrt(float(ch @ ch)) or 1e-9
+        sel = pc_frame[mask[:len(pc_frame)]]
+        hist = np.bincount(sel[sel >= 0], minlength=12)
+        bmax = int(hist.max())
+        best, best_v = ('', -9.9)
+        for root in range(12):
+            bass_bonus = 0.2 * hist[root] / bmax if bmax else 0.0
+            for suffix, ivs in CHORD_TEMPLATES.items():
+                t = np.zeros(12)
+                for iv, wgt in ivs.items():
+                    t[(root + iv) % 12] = wgt
+                v = float(ch @ t) / (math.sqrt(float(t @ t)) * ch_norm)  # 余弦相关
+                v += bass_bonus - CHORD_SUFFIX_PENALTY[suffix]
+                if (root - key_tonic) % 12 in diatonic:
+                    v += 0.06                                # 调性先验: 只破平局
+                if v > best_v:
+                    best, best_v = (NOTE_NAMES[root] + suffix), v
+        out[m] = best
+    return out
+
+
 # ---------------------------------------------------------------- 阶段5: 简谱映射
 def octave_offset(pitch: int, tonic_pc: int, ref_midi: int) -> int:
     """相对八度偏移: 以 ref_midi(人声 median) 下方最近的“1”为基准"""
@@ -482,23 +561,116 @@ def cell_text(cell, tonic_pc: int, show_octave: bool) -> str:
     return out
 
 
-def render_score_rows(measures: list, tonic_pc: int, show_octave: bool, per_line: int = 4):
-    """→ (行列表, 整曲单行)。每行 per_line 个小节, 行首为该行第一小节编号"""
+# ------------------------------------------------- 吉他指法表(和弦图: HTML SVG / PDF 同源)
+# 开放把位常用和弦: 品位低→高(EADGBE), -1=闷音(x), 0=空弦(o)
+GUITAR_OPEN_CHORDS = {
+    'C': (-1, 3, 2, 0, 1, 0),      'Cmaj7': (-1, 3, 2, 0, 0, 0),
+    'C7': (-1, 3, 2, 3, 1, 0),
+    'D': (-1, -1, 0, 2, 3, 2),     'Dm': (-1, -1, 0, 2, 3, 1),
+    'D7': (-1, -1, 0, 2, 1, 2),    'Dm7': (-1, -1, 0, 2, 1, 1),
+    'E': (0, 2, 2, 1, 0, 0),       'Em': (0, 2, 2, 0, 0, 0),
+    'E7': (0, 2, 0, 1, 0, 0),      'Em7': (0, 2, 0, 0, 0, 0),
+    'Emaj7': (0, 2, 1, 1, 0, 0),
+    'G': (3, 2, 0, 0, 0, 3),       'G7': (3, 2, 0, 0, 0, 1),
+    'A': (-1, 0, 2, 2, 2, 0),      'Am': (-1, 0, 2, 2, 1, 0),
+    'A7': (-1, 0, 2, 0, 2, 0),     'Am7': (-1, 0, 2, 0, 1, 0),
+    'Amaj7': (-1, 0, 2, 1, 2, 0),  'B7': (-1, 2, 1, 2, 0, 2),
+}
+# 横按形状(品位相对横按位置的偏移): E 型根音在 6 弦 / A 型根音在 5 弦
+_BARRE_E = {'': (0, 2, 2, 1, 0, 0), 'm': (0, 2, 2, 0, 0, 0), '7': (0, 2, 0, 1, 0, 0),
+            'm7': (0, 2, 0, 0, 0, 0), 'maj7': (0, 2, 1, 1, 0, 0)}
+_BARRE_A = {'': (-1, 0, 2, 2, 2, 0), 'm': (-1, 0, 2, 2, 1, 0), '7': (-1, 0, 2, 0, 2, 0),
+            'm7': (-1, 0, 2, 0, 1, 0), 'maj7': (-1, 0, 2, 1, 2, 0)}
+
+
+def parse_chord_name(name: str):
+    """'C' / 'F#' / 'Bbm' → (root_pc, 后缀)；无法解析返回 None"""
+    for pc, n in enumerate(NOTE_NAMES):
+        if name.startswith(n) and name[len(n):] in CHORD_TEMPLATES:
+            return pc, name[len(n):]
+    return None
+
+
+def guitar_fingering(name: str):
+    """和弦名 → (品位低→高 tuple, 显示基准品) 或 None(未知和弦)。
+    开放把位优先, 其余按根音离空把更近的一侧生成 E 型/A 型横按"""
+    if name in GUITAR_OPEN_CHORDS:
+        frets = GUITAR_OPEN_CHORDS[name]
+    else:
+        parsed = parse_chord_name(name)
+        if not parsed:
+            return None
+        pc, suffix = parsed
+        f_e, f_a = (pc - 4) % 12, (pc - 9) % 12   # 6 弦/5 弦上的把位
+        if f_a and (not f_e or f_a < f_e):
+            base, shape = f_a, _BARRE_A[suffix]
+        else:
+            base, shape = max(f_e, 1), _BARRE_E[suffix]
+        frets = tuple(-1 if f < 0 else f + base for f in shape)
+    played = [f for f in frets if f > 0]
+    base_fret = min(played) if played and max(played) > 5 else 1
+    return frets, base_fret
+
+
+def chord_svg(name: str) -> str:
+    """和弦名 → 内联 SVG 指法图(六弦×5品, 圆点/空弦/闷音标记, 把位号)"""
+    fr = guitar_fingering(name)
+    if not fr:
+        return ''
+    frets, base = fr
+    L, T, W_STR, H_FRET, M = 6, 15, 10, 10, 12   # 左边距/网格顶/弦距/品高/标记行高
+    parts = [f'<svg class="fret" viewBox="0 0 64 78" width="60" height="73" '
+             f'xmlns="http://www.w3.org/2000/svg">',
+             '<g stroke="#444" stroke-width="1" stroke-linecap="round">']
+    if base == 1:   # 上弦枕加粗
+        parts.append(f'<rect x="{L - 1}" y="{T - 2.5}" width="{W_STR * 5 + 2}" height="3" fill="#444"/>')
+    for i in range(6):   # 六根竖线(低音弦在左)
+        x = L + i * W_STR
+        parts.append(f'<line x1="{x}" y1="{T}" x2="{x}" y2="{T + H_FRET * 5}"/>')
+    for j in range(6):   # 六条横线(5 品格)
+        y = T + j * H_FRET
+        parts.append(f'<line x1="{L}" y1="{y}" x2="{L + W_STR * 5}" y2="{y}"/>')
+    if base > 1:     # 把位号
+        parts.append(f'<text x="0" y="{T + 9}" font-size="8" fill="#666">{base}fr</text>')
+    for i, f in enumerate(frets):
+        x = L + i * W_STR
+        if f < 0:
+            parts.append(f'<text x="{x - 3}" y="{M - 1}" font-size="8" fill="#888">×</text>')
+        elif f == 0:
+            parts.append(f'<circle cx="{x}" cy="{M - 4}" r="2.6" fill="none" stroke="#666"/>')
+        else:
+            cy = T + (f - base + 0.5) * H_FRET
+            parts.append(f'<circle cx="{x}" cy="{cy:.1f}" r="3.6" fill="#333"/>')
+    parts.append('</g></svg>')
+    return ''.join(parts)
+
+
+def render_score_rows(measures: list, tonic_pc: int, show_octave: bool, per_line: int = 4,
+                      chords: dict = None):
+    """→ (行列表, 整曲单行)。每行 per_line 个小节, 行首为该行第一小节编号;
+    chords={小节号: 和弦名} 时每行上方加一行和弦名(按小节宽度对齐, N.C.留空)"""
     texts = [(m, ' '.join(cell_text(c, tonic_pc, show_octave) for c in cells))
              for m, cells in measures]
+    chord_map = chords or {}
     rows = []
     for i in range(0, len(texts), per_line):
         chunk = texts[i:i + per_line]
         rows.append(f"{chunk[0][0]:>3} | " + ' | '.join(t for _, t in chunk))
+        if chord_map:
+            cells = [(chord_map.get(m) or '').ljust(len(t) if j < len(chunk) - 1 else 0)
+                     for j, (m, t) in enumerate(chunk)]
+            if any(c.strip() for c in cells):
+                rows.append(' ' * 5 + '| ' + ' | '.join(c for c in cells).rstrip())
     one_line = ' | '.join(t for _, t in texts)
     return rows, one_line
 
 
 def write_score_html(path: Path, title: str, key_str: str, bpm: float,
                      beats_per_bar: int, measures: list, tonic_pc: int,
-                     per_line: int = 4) -> None:
+                     per_line: int = 4, chords: dict = None) -> None:
     """生成静态网页乐谱 jianpu.html: 每行4小节、行首编号、小节竖线、
-    八度点(上高下低)、八分/十六分音符下划线、延音—、休止0, 可直接打印"""
+    八度点(上高下低)、八分/十六分音符下划线、延音—、休止0, 可直接打印;
+    chords={小节号: 和弦名} 时每小节上方加和弦名+吉他指法图(SVG)"""
     import html as _html
 
     def note_span(e):
@@ -515,7 +687,7 @@ def write_score_html(path: Path, title: str, key_str: str, bpm: float,
                  if e.get('word') else '')
         return f'<span class="{cls}">{dots}{digit}{lyric}</span>'
 
-    def measure_html(cells):
+    def measure_html(cells, chord):
         parts = []
         for c in cells:
             if c is None:
@@ -524,12 +696,22 @@ def write_score_html(path: Path, title: str, key_str: str, bpm: float,
                 parts.append('<span class="hold">—</span>')
             else:
                 parts.append(''.join(note_span(e) for e in c))
-        return '<div class="beat">' + '</div><div class="beat">'.join(parts) + '</div>'
+        beats = '<div class="beat">' + '</div><div class="beat">'.join(parts) + '</div>'
+        head = ''
+        if chord:
+            svg = chord_svg(chord)
+            head = (f'<div class="chord"><div class="cname">{_html.escape(chord)}</div>'
+                    + (svg or '') + '</div>')
+        elif chords:                       # 有和弦的小节行里保持对齐的占位
+            head = '<div class="chord"></div>'
+        return f'{head}<div class="beats">{beats}</div>'
 
+    chord_map = chords or {}
     rows_html = []
     for i in range(0, len(measures), per_line):
         chunk = measures[i:i + per_line]
-        ms = ''.join(f'<div class="m">{measure_html(cells)}</div>' for _, cells in chunk)
+        ms = ''.join(f'<div class="m">{measure_html(cells, chord_map.get(m))}</div>'
+                     for m, cells in chunk)
         rows_html.append(f'<div class="row"><span class="mno">{chunk[0][0]}</span>{ms}</div>')
 
     doc = f"""<!DOCTYPE html>
@@ -542,9 +724,15 @@ def write_score_html(path: Path, title: str, key_str: str, bpm: float,
  .meta {{ text-align: center; font-size: 15px; margin-bottom: 18px; letter-spacing: 2px; }}
  .row {{ display: flex; align-items: stretch; margin: 10px 0; break-inside: avoid; }}
  .mno {{ width: 2.2em; color: #888; font-size: 13px; padding-top: 2px; }}
- .m   {{ flex: 1; display: flex; border-left: 1.5px solid #444; padding: 2px 6px 6px; }}
+ .m   {{ flex: 1; display: flex; flex-direction: column; border-left: 1.5px solid #444;
+        padding: 2px 6px 6px; }}
  .row .m:last-child {{ border-right: 1.5px solid #444; }}
+ .beats {{ display: flex; flex: 1; }}
  .beat {{ flex: 1; text-align: center; font-size: 21px; white-space: nowrap; }}
+ .chord {{ min-height: 76px; text-align: center; }}
+ .cname {{ font-size: 14px; font-weight: 700; color: #1a5c1a; margin: 1px 0 0;
+         font-family: Georgia, "Times New Roman", serif; }}
+ .fret  {{ display: block; margin: 0 auto; }}
  .n   {{ position: relative; display: inline-block; min-width: .95em; text-align: center;
         margin: 0 .10em; padding: 0 1px; }}
  .u1  {{ border-bottom: 1.5px solid #111; }}
@@ -583,12 +771,27 @@ def _jly_pitch_token(e: dict, tonic_pc: int) -> str:
 # (jianpu-ly 的 q/s 记号必须成组连杠, 且延音线 '-' 不能接在连杠拍之后)
 _BEAT_SHAPES = {1: [''], 2: ['q', 'q'], 3: ['q', 's', 's'], 4: ['s', 's', 's', 's']}
 
+# 和弦名 → \chordmode 记号: 音名用 LilyPond 荷兰记法(C→c, F#→fis), 性质用 :m/:7/...
+_LILY_NOTE = ['c', 'cis', 'd', 'dis', 'e', 'f', 'fis', 'g', 'gis', 'a', 'ais', 'b']
+_LILY_CHORD_SUFFIX = {'': '', 'm': ':m', '7': ':7', 'm7': ':m7', 'maj7': ':maj7'}
+
+
+def _jly_chord_token(name: str, beats_per_bar: int) -> str:
+    """和弦名 → 一个小节时值的 \chordmode 记号; 无和弦/未知名 → 跳过记号(时值不变)"""
+    parsed = parse_chord_name(name) if name else None
+    if not parsed:
+        return f's1*{beats_per_bar}/4'
+    pc, suffix = parsed
+    return f'{_LILY_NOTE[pc]}1*{beats_per_bar}/4{_LILY_CHORD_SUFFIX[suffix]}'
+
 
 def write_jly(path: Path, title: str, key_str: str, bpm: float,
-              beats_per_bar: int, measures: list, tonic_pc: int) -> None:
+              beats_per_bar: int, measures: list, tonic_pc: int, chords: dict = None) -> None:
     """measures → jianpu-ly 文本 (LilyPond 出版级排版的输入)。
-    每拍精确 1 拍 → 每小节精确 = 拍号, 从构造上保证 barcheck 通过"""
-    lines_toks = []
+    每拍精确 1 拍 → 每小节精确 = 拍号, 从构造上保证 barcheck 通过。
+    chords={小节号: 和弦名} → 头部 chords=/frets= 行(ChordNames+FretBoards 吉他指法图);
+    音符带 word → 头部 L: 歌词行(与音符一一同序, 休止/延音不占位, '_'=跳过)"""
+    lines_toks, syls = [], []
     for m, cells in measures:
         toks = []
         prev_single = False  # 上一拍是否单 token(四分音符), 延音线只能接在它后面
@@ -606,27 +809,47 @@ def write_jly(path: Path, title: str, key_str: str, bpm: float,
                 shape = _BEAT_SHAPES.get(len(entries), _BEAT_SHAPES[4])[:len(entries)]
                 for pref, e in zip(shape, entries):
                     toks.append(pref + _jly_pitch_token(e, tonic_pc))
+                    syls.append(e.get('word') or '_')
                 prev_single = len(entries) == 1
         toks.append('|')
         lines_toks.append(' '.join(toks))
     header = [f'title={title}', key_str, f'{beats_per_bar}/4', f'4={bpm:.0f}']
+    if any(s != '_' for s in syls):
+        header.append('L: ' + ' '.join(syls))
+    if chords:
+        chord_map = chords if isinstance(chords, dict) else dict(chords)
+        header.append('chords=' + ' '.join(_jly_chord_token(chord_map.get(m), beats_per_bar)
+                                           for m, _ in measures))
+        header.append('frets=guitar')
     path.write_text('\n'.join(header) + '\n' + '\n'.join(lines_toks) + '\n',
                     encoding='utf-8')
 
 
-def render_lilypond_pdf(jly_path: Path, outdir: Path) -> Path:
-    """jianpu-ly → .ly → lilypond → jianpu.pdf"""
+def render_lilypond_pdf(jly_path: Path, outdir: Path,
+                        show_repeated_chords: bool = False) -> Path:
+    """jianpu-ly → .ly → lilypond → jianpu.pdf。
+    show_repeated_chords: 把 jianpu-ly 硬编码的 chordChanges=##t 改写为 ##f,
+    让连续相同的和弦也逐小节重复显示(弹唱谱"每小节都标"样式)"""
     jexe = shutil.which('jianpu-ly') or str(Path(sys.executable).with_name('jianpu-ly.exe'))
     ly_path = outdir / 'score.ly'
-    with open(jly_path, 'rb') as fin, open(ly_path, 'wb') as fout:
-        r1 = subprocess.run([jexe], stdin=fin, stdout=fout, stderr=subprocess.PIPE)
+    with open(jly_path, 'rb') as fin:
+        r1 = subprocess.run([jexe], stdin=fin, capture_output=True)
     if r1.returncode != 0:
         raise RuntimeError(f'jianpu-ly 失败: {r1.stderr[-400:]!r}')
+    ly = r1.stdout.decode('utf-8', errors='replace')
+    if show_repeated_chords and r'\set chordChanges = ##t' in ly:
+        ly = ly.replace(r'\set chordChanges = ##t', r'\set chordChanges = ##f', 1)
+    ly_path.write_text(ly, encoding='utf-8')
     lily = shutil.which('lilypond') or str(VENDOR_DIR / 'lilypond' / 'bin' / 'lilypond.exe')
     if not Path(lily).exists():
         raise FileNotFoundError('未找到 lilypond (vendor/lilypond 或 PATH)')
     env = os.environ.copy()
     env['PATH'] = str(VENDOR_DIR / 'lilypond' / 'bin') + os.pathsep + env.get('PATH', '')
+    pdf = outdir / 'jianpu.pdf'
+    try:                       # Windows: 旧 PDF 被阅读器占用时 lilypond 重命名会失败
+        pdf.unlink(missing_ok=True)
+    except OSError:
+        raise RuntimeError('旧的 jianpu.pdf 被其他程序占用, 请关闭 PDF 阅读器后重试')
     r2 = subprocess.run([lily, '-dno-point-and-click', '-o', str(outdir / 'jianpu'),
                          str(ly_path)], capture_output=True, text=True,
                         encoding='utf-8', errors='replace', env=env, cwd=str(outdir))
@@ -694,6 +917,8 @@ def main():
                     help="beat_this 模型: best=final0(78MB,已缓存则用)/small0 回退; 可显式指定 small0/final0")
     ap.add_argument('--no-pdf', action='store_true', help='跳过 jianpu-ly/LilyPond PDF 生成')
     ap.add_argument('--no-lyrics', action='store_true', help='跳过 FunASR 歌词识别(实验性)')
+    ap.add_argument('--no-chords', action='store_true',
+                    help='跳过和弦检测(每小节和弦名+吉他指法图)')
     args = ap.parse_args()
 
     t0 = time.time()
@@ -813,13 +1038,31 @@ def main():
         except Exception as e:
             log(f"⑥ 歌词: FunASR 不可用({type(e).__name__}: {str(e)[:100]}), 跳过")
 
+    # 7. 和弦检测(吉他弹唱谱): 伴奏轨优先, 每小节一个和弦, 失败可跳过
+    chords = None
+    if not args.no_chords:
+        try:
+            acc = sorted(work.glob('separated/*/mix/no_vocals.wav'))
+            chord_src = acc[0] if acc else mix_wav
+            prior_tonic, prior_mode = ((parse_key_arg(args.key)) if args.key
+                                       else (det_tonic, det_mode))
+            chords = detect_chords(chord_src, bars, beat_len, bpb,
+                                   prior_tonic, prior_mode)
+            named = [c for c in chords.values() if c]
+            top = ' '.join(f'{k}×{v}' for k, v in
+                           Counter(named).most_common(4))
+            log(f"⑦ 和弦: {len(named)}/{len(chords)} 小节"
+                f"({'伴奏轨' if acc else '全混音'}·chroma 模板) 常用 {top}")
+        except Exception as e:
+            log(f"⑦ 和弦: 检测失败({type(e).__name__}: {str(e)[:100]}), 跳过")
+
     # 8. 乐谱版式输出: 每行 N 小节 + 网页乐谱 + jianpu-ly PDF
     measures = build_measure_cells(notes, bars, beat_len, bpb, tonic_pc, ref_midi)
     rows, one_line = render_score_rows(measures, tonic_pc, args.show_octave,
-                                       args.measures_per_line)
+                                       args.measures_per_line, chords)
     write_score_html(outdir / 'jianpu.html', Path(args.input).stem,
                      f"1={NOTE_NAMES[tonic_pc]}", bpm, bpb,
-                     measures, tonic_pc, args.measures_per_line)
+                     measures, tonic_pc, args.measures_per_line, chords)
 
     # 输出文件
     with open(outdir / 'jianpu.txt', 'w', encoding='utf-8') as f:
@@ -835,23 +1078,24 @@ def main():
     with open(outdir / 'notes.csv', 'w', encoding='utf-8-sig', newline='') as f:
         w = csv.writer(f)
         w.writerow(['小节', '拍', '开始(s)', '结束(s)', '时长(s)', '音名', 'MIDI',
-                    '简谱', '字', '力度'])
+                    '简谱', '字', '力度', '和弦'])
+        chord_map = chords or {}
         for n in sorted(notes, key=lambda x: x['start']):
             m, bi = locate_note(n['start'], bars, beat_len, bpb)
             name = NOTE_NAMES[n['pitch'] % 12] + str(n['pitch'] // 12 - 1)
             w.writerow([m, bi + 1, f"{n['start']:.2f}", f"{n['end']:.2f}",
                         f"{n['end'] - n['start']:.2f}", name, n['pitch'],
                         pitch_to_jianpu(n['pitch'], tonic_pc, args.show_octave, ref_midi),
-                        n.get('word', ''), f"{n['amp']:.2f}"])
+                        n.get('word', ''), f"{n['amp']:.2f}", chord_map.get(m) or ''])
 
     # jianpu-ly → LilyPond 出版级 PDF (可降级)
     pdf_note = ''
     if not args.no_pdf:
         jly_path = outdir / 'score.jly'
         write_jly(jly_path, Path(args.input).stem, f"1={NOTE_NAMES[tonic_pc]}",
-                  bpm, bpb, measures, tonic_pc)
+                  bpm, bpb, measures, tonic_pc, chords)
         try:
-            render_lilypond_pdf(jly_path, outdir)
+            render_lilypond_pdf(jly_path, outdir, show_repeated_chords=bool(chords))
             pdf_note = ' / jianpu.pdf'
         except Exception as e:
             log(f"警告: PDF 生成失败({str(e)[:140]}); 已保留 score.jly 供手动排版")

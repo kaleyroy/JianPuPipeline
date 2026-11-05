@@ -3,7 +3,8 @@
 """端到端测试:
 1) 回归: basic-pitch+librosa 引擎, 输出与标准答案逐字节一致(确定性路径)
 2) beat_this: downbeat 恰为小节线 (0/2.4/4.8/... @100BPM)
-3) SOME+PDF 冒烟: 有 ckpt 时跑全引擎, 只断言版式结构
+3) 和弦检测: 合成和弦垫 C F C G ×2 循环, chroma 模板匹配应还原 ≥7/8
+4) SOME+PDF 冒烟: 有 ckpt 时跑全引擎, 只断言版式结构
 """
 import re
 import subprocess
@@ -77,6 +78,39 @@ print(f'{bpm:.1f}', ','.join(f'{float(d):.2f}' for d in downbeats[:5]))
     return ok
 
 
+def check_chords():
+    """和弦检测: 纯伴奏(鼓+和弦垫, 复用 make_test_audio 合成器)每小节铺已知
+    正弦三和弦 C F C G ×2, chroma 模板匹配应还原 ≥7/8;
+    顺带校验 SVG 指法图与 B 和弦横按生成器"""
+    r = subprocess.run([PY, '-c', """
+import sys, os
+sys.path.insert(0, '.'); sys.path.insert(0, 'test')
+import numpy as np, soundfile as sf
+import jianpu
+from make_test_audio import synth_accompaniment, SR
+os.makedirs('output_test', exist_ok=True)
+acc = synth_accompaniment(int(19.8 * SR))          # 8 小节 + 尾巴, 只有鼓+和弦垫
+sf.write(r'output_test/acc.wav', 0.9 * acc / np.abs(acc).max(), SR)
+bars = [(i + 1, i * 2.4) for i in range(8)]        # 100BPM 4/4, 8 小节
+chords = jianpu.detect_chords(r'output_test/acc.wav', bars, 0.6, 4, 0, 'major')
+got = [chords.get(m) or 'N.C.' for m in range(1, 9)]
+print(' '.join(got))
+print('SVG ok' if jianpu.chord_svg('C').startswith('<svg') else 'SVG missing')
+print('B barre ok' if jianpu.guitar_fingering('B') == ((-1, 2, 4, 4, 4, 2), 1)
+      else 'B barre fail')
+"""], capture_output=True, text=True, cwd=str(ROOT))
+    out = (r.stdout or '').strip().splitlines()
+    print('和弦检测:', out[0] if out else (r.stderr or '')[-200:])
+    if r.returncode != 0 or len(out) < 3:
+        return False
+    expect = ['C', 'F', 'C', 'G'] * 2
+    got = out[0].split()
+    ok = len(got) == 8 and sum(a == b for a, b in zip(got, expect)) >= 7
+    ok = ok and out[1] == 'SVG ok' and out[2] == 'B barre ok'
+    print(f'  期望≈{" ".join(expect)} ({out[1]}, {out[2]}) →', 'PASS' if ok else 'FAIL')
+    return ok
+
+
 def check_some_smoke():
     some = ROOT / 'vendor' / 'SOME'
     if not (list(some.glob('pretrained/*.ckpt')) or list(some.glob('pretrained/**/*.ckpt'))):
@@ -84,7 +118,8 @@ def check_some_smoke():
         return True
     outdir = ROOT / 'output_test_some'
     text = run_pipeline(outdir, ['--transcriber', 'some', '--beat-engine', 'beat-this',
-                                 '--beats-per-measure', '4', '--no-lyrics', '--no-pdf'])
+                                 '--beats-per-measure', '4', '--no-lyrics', '--no-pdf',
+                                 '--no-chords'])
     got_rows = [ln for ln in text.splitlines() if re.match(r'^\s*\d+ \| ', ln)]
     ok = len(got_rows) == 2 and 'some+beat-this' in text
     print(f'SOME 冒烟: {len(got_rows)} 行 (期望2), 引擎标记 '
@@ -96,8 +131,10 @@ def check_some_smoke():
 def main():
     results = {}
     results['beat_this'] = check_beat_this()
+    results['chords'] = check_chords()
     text = run_pipeline(ROOT / 'output_test',
-                        ['--transcriber', 'basic-pitch', '--beat-engine', 'librosa'])
+                        ['--transcriber', 'basic-pitch', '--beat-engine', 'librosa',
+                         '--no-chords'])
     results['regression'] = check_regression(text)
     html = (ROOT / 'output_test' / 'jianpu.html').read_text(encoding='utf-8')
     results['html_rows'] = html.count('<div class="row">') == len(EXPECTED_ROWS)

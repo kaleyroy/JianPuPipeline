@@ -23,8 +23,15 @@ for r in rows:
         firsts[m] = t
 bars = sorted(firsts.items())
 
+# 每小节和弦(存在"和弦"列时), 供 PDF 的 ChordNames/FretBoards
+chords = {}
+for r in rows:
+    if r.get('和弦'):
+        chords[int(r['小节'])] = r['和弦']
+
 med = sorted(n['pitch'] for n in notes)[len(notes) // 2]
 measures = jianpu.build_measure_cells(notes, bars, beat_len, BPB, TONIC, med)
-jianpu.write_jly(OUT / 'score.jly', '寄往未来的信', '1=G', BPM, BPB, measures, TONIC)
-pdf = jianpu.render_lilypond_pdf(OUT / 'score.jly', OUT)
+jianpu.write_jly(OUT / 'score.jly', '寄往未来的信', '1=G', BPM, BPB, measures, TONIC,
+                 chords or None)
+pdf = jianpu.render_lilypond_pdf(OUT / 'score.jly', OUT, show_repeated_chords=bool(chords))
 print('PDF:', pdf)

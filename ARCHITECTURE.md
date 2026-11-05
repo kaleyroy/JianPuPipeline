@@ -6,12 +6,13 @@
 ## 1. 系统定位
 
 输入一首歌的音视频文件（mp3/mp4/wav/flac/m4a），**全本地、全开源**流水线输出
-人声旋律的**每小节简谱**：文本（每行 4 小节）、网页乐谱（八度点/下划线/歌词行）、
-出版级 PDF（jianpu-ly + LilyPond）、`notes.csv`、`melody.mid`。任一引擎缺失自动降级，流水线不中断。
+人声旋律的**每小节简谱**：文本（每行 4 小节+和弦行）、网页乐谱（八度点/下划线/歌词行/
+和弦 SVG 指法图）、出版级**弹唱谱** PDF（jianpu-ly + LilyPond：每小节和弦名+吉他指法图、
+简谱下逐音符歌词）、`notes.csv`、`melody.mid`。任一引擎缺失自动降级，流水线不中断。
 
 ## 2. 端到端架构总览
 
-八个阶段（对应 `jianpu.py` `main()` 的执行顺序），实线为主数据流，虚线为失败回退：
+九个阶段（对应 `jianpu.py` `main()` 的执行顺序），实线为主数据流，虚线为失败回退：
 
 ```mermaid
 flowchart TD
@@ -78,13 +79,22 @@ flowchart TD
     VOC --> FAS
     NTS --> FAS
 
+    subgraph S7C["⑨ 和弦检测（可 --no-chords，失败仅跳过）"]
+        CHD["detect_chords<br/>伴奏 no_vocals（清唱时全混音）<br/>chroma_cqt 中位数 → 12根音×5性质<br/>加权模板余弦 + 低音根音直方图加分<br/>+ 调性先验 + 七和弦 Occam 惩罚"]
+    end
+    DMC -. "no_vocals stem".-> CHD
+    MIX -. "清唱回退全混音" .-> CHD
+    GDB --> CHD
+    GUN --> CHD
+    MM -. "det_tonic/det_mode 原始值" .-> CHD
+
     subgraph S8["⑧ 版式输出"]
         direction LR
         CELLS["build_measure_cells<br/>小节×拍 格: 音符/休止/延音"]
-        OUT1["jianpu.txt<br/>每行 N 小节 + 整曲单行"]
-        OUT2["jianpu.html<br/>八度点/下划线/歌词"]
-        OUT3["notes.csv 含字列"]
-        OUT4["score.jly → jianpu-ly<br/>→ LilyPond → jianpu.pdf"]
+        OUT1["jianpu.txt<br/>每行 N 小节 + 和弦行 + 整曲单行"]
+        OUT2["jianpu.html<br/>八度点/下划线/歌词/和弦SVG指法图"]
+        OUT3["notes.csv 含字/和弦列"]
+        OUT4["score.jly(chords=/frets=/L:)<br/>→ jianpu-ly → LilyPond<br/>→ jianpu.pdf(和弦图+歌词)"]
         OUT5["melody.mid"]
     end
     NTS --> CELLS
@@ -92,6 +102,8 @@ flowchart TD
     GUN --> CELLS
     MM --> CELLS
     CELLS --> OUT1 & OUT2 & OUT3 & OUT4
+    CHD --> OUT1 & OUT2 & OUT3 & OUT4
+    FAS --> OUT2 & OUT4
     SOM -.-> OUT5
     BPF -.-> OUT5
 ```
@@ -145,9 +157,14 @@ sequenceDiagram
         FA-->>J: 字按最大时间重叠挂到音符
     end
 
+    opt 未 --no-chords
+        J->>LI: 伴奏 no_vocals（清唱时全混音）→ chroma 模板匹配
+        LI-->>J: {小节号: 和弦名}
+    end
+
     J->>J: 小节×拍 cells → txt / html / csv
-    J->>LP: score.jly → score.ly → 排版
-    LP-->>J: jianpu.pdf
+    J->>LP: score.jly(chords=/frets=/L:) → score.ly(chordChanges→##f) → 排版
+    LP-->>J: jianpu.pdf（和弦名+指法图+歌词）
     J-->>U: jianpu.txt / html / pdf / csv / midi / lyrics
 ```
 
@@ -253,20 +270,40 @@ notes[] ──locate_note──▶ placed{小节: {拍: [音符dict]}} ──延
 
 | 输出 | 生成函数 | 特点 |
 |---|---|---|
-| `jianpu.txt` | `render_score_rows` | 每行 N 小节（默认4），行首小节编号，` \| ` 分隔 + 整曲单行 |
-| `jianpu.html` | `write_score_html` | 纯静态可打印：八度上下圆点、八分/十六分下划线、延音、歌词行 |
-| `notes.csv` | `main()` | 每音符：小节/拍/时间/音名/MIDI/简谱/**字**/力度（utf-8-sig 供 Excel） |
+| `jianpu.txt` | `render_score_rows` | 每行 N 小节（默认4），行首小节编号，` \| ` 分隔 + 整曲单行；有小节上方**和弦行**（按小节宽度对齐） |
+| `jianpu.html` | `write_score_html` | 纯静态可打印：八度上下圆点、八分/十六分下划线、延音、歌词行；每小节上方**和弦名 + SVG 指法图**（开放把位字典 + E/A 型横按生成器，与 PDF 同源规则） |
+| `notes.csv` | `main()` | 每音符：小节/拍/时间/音名/MIDI/简谱/**字**/力度/**和弦**（utf-8-sig 供 Excel） |
 | `melody.mid` | SOME 或 basic-pitch 产物 | 旋律 MIDI |
-| `score.jly` | `write_jly` | jianpu-ly 中间格式（可手工编辑再重排） |
+| `score.jly` | `write_jly` | jianpu-ly 中间格式（可手工编辑再重排；含 `chords=`/`frets=`/`L:` 头部行） |
 
-### 7.2 PDF 排版链（jianpu-ly + LilyPond）
+### 7.2 和弦检测（`detect_chords`，纯 librosa+numpy 零新模型）
 
 ```mermaid
 flowchart LR
-    MS["measures<br/>[(小节, cells)]"] --> JLY["write_jly<br/>每拍整形为 _BEAT_SHAPES"]
-    JLY --> F1["score.jly"]
-    F1 --> JL["jianpu-ly"] -->|"stdin → stdout"| LYF["score.ly"]
-    LYF --> LP["LilyPond 2.24.4<br/>vendor/lilypond"] --> PDF["jianpu.pdf"]
+    ACC["伴奏 no_vocals.wav<br/>（--no-separate 时 mix.wav）"] --> CH["chroma_cqt fmin=C2<br/>（排除底鼓低频）"]
+    ACC --> CQ["cqt C2..C4 → 每帧最低显著bin<br/>= 低音根音直方图"]
+    CH --> MED["按小节切窗取中位数<br/>归一化 12 维"]
+    MED --> SCORE["score(root,性质) =<br/>加权模板余弦(根1.0/五0.75/三0.6/七0.45)<br/>+ 0.2×低音根音占比 + 0.06×调内根音先验<br/>- Occam 惩罚(7th 0.05~0.06)"]
+    CQ --> SCORE
+    SCORE --> BEST["argmax → {小节: 'C'/'Em7'/...}<br/>静音小节 → None(N.C.)"]
+```
+
+- **为什么用伴奏轨**：人声旋律音（尤其 2nd/4th/6th 经过音）会把三和弦带偏成七和弦
+  （混音下 F 和弦 + 强旋律 E 会被判成 Fmaj7，本质歧义）。
+- **低音根音线索**：贝斯/钢琴左手/垫音最低音多为根音；基频低于 C2 时其二次谐波同音级落入窗内。
+- **七和弦 Occam 惩罚**：泛音/邻小节谐波泄漏常凭空"点亮"七音，惩罚后只有七音真实存在才胜出
+  （《寄往未来的信》调参对照：无惩罚 maj7 系占 65% → 0.05~0.06 惩罚后 G×23/D×18/C×18/Em7×12）。
+- 词表：12 根音 × {maj, m, 7, m7, maj7}；每小节单一和弦，不含转位/sus/小节内变化。
+
+### 7.3 PDF 排版链（jianpu-ly + LilyPond）
+
+```mermaid
+flowchart LR
+    MS["measures<br/>[(小节, cells)]"] --> JLY["write_jly<br/>每拍整形为 _BEAT_SHAPES<br/>+收集逐音符歌词音节<br/>+chords= 每小节一个和弦token"]
+    JLY --> F1["score.jly<br/>header: chords=/frets=guitar/L:"]
+    F1 --> JL["jianpu-ly<br/>(chords→ChordNames+FretBoards<br/>L:→Lyrics lyricsto W 平行声部)"]
+    JL -->|"stdout 内存中转"| FIX["后处理 score.ly:<br/>chordChanges ##t → ##f<br/>(每小节重复显示)"]
+    FIX --> LP["LilyPond 2.24.4<br/>vendor/lilypond"] --> PDF["jianpu.pdf<br/>和弦名+指法图+歌词"]
     F1 -. "jianpu-ly/LilyPond 缺失或失败" .-> KEEP["保留 .jly<br/>供手动排版重试"]
 ```
 
@@ -287,10 +324,10 @@ flowchart LR
 ```mermaid
 flowchart TD
     subgraph REPO["jianpu-pipeline/  (Python 3.10 venv .venv)"]
-        JP["jianpu.py 主流水线<br/>单文件 ~870 行 · 阶段①-⑧"]
+        JP["jianpu.py 主流水线<br/>单文件 ~1050 行 · 阶段①-⑨"]
         DLP["download_models.py<br/>模型预下载/测速/自检"]
-        RPD["rerender_pdf.py<br/>out/notes.csv → 重排版 PDF（不重跑识别）"]
-        RT["test/run_test.py<br/>4 项端到端断言"]
+        RPD["rerender_pdf.py<br/>out/notes.csv(含和弦列) → 重排版 PDF（不重跑识别）"]
+        RT["test/run_test.py<br/>5 项端到端断言"]
         MTA["test/make_test_audio.py<br/>合成 8 小节已知答案音频"]
         DATA["data/ 测试音频 + expected.txt"]
         OUT["out/ 真实歌曲产物"]
@@ -326,8 +363,9 @@ flowchart TD
     JP -.->|"首跑自动下载"| CACHE
 ```
 
-测试锚点：`run_test.py` 的回归断言锁定 `--transcriber basic-pitch --beat-engine librosa`
-确定性路径（合成正弦对 SOME/demucs 是分布外样本，只做结构性断言）。
+测试锚点：`run_test.py` 的回归断言锁定 `--transcriber basic-pitch --beat-engine librosa --no-chords`
+确定性路径（合成正弦对 SOME/demucs 是分布外样本，只做结构性断言）；和弦检查在
+`synth_accompaniment` 纯伴奏（C F C G ×2 已知循环）上断言 ≥7/8。
 
 ## 9. 关键设计决策速查
 
@@ -342,3 +380,6 @@ flowchart TD
 | 7 | 小调按关系大调记谱 | 简谱惯例（Am 歌记 1=C），减少变音记号 |
 | 8 | 任一引擎缺失 → 优雅降级 + 日志注明 | 可用性优先：总能产出至少文本+HTML 简谱 |
 | 9 | 全程 `subprocess` 显式 `encoding='utf-8'` | 中文 Windows GBK 控制台对 UTF-8 子进程输出会 UnicodeDecodeError |
+| 10 | 和弦用**伴奏 stem** + 加权模板匹配（零新模型） | 人声旋律经过音会带偏和弦；chroma 模板分布内可测，无需引入重模型 |
+| 11 | PDF 和弦/歌词走 jianpu-ly 原生 `chords=`/`frets=`/`L:` 平行声部 | 不碰简谱 Voice 的时值/barPos 账本，零 barcheck 风险；`chordChanges ##t→##f` 后处理实现"每小节都标" |
+| 12 | HTML/PDF 指法图同源（开放字典 + E/A 型横按生成器） | 一份品位数据两处渲染，风格一致；PDF 侧 predefined 表已覆盖 12 根音×5 性质 |
